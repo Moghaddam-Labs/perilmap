@@ -1,49 +1,40 @@
-"""Measure database size and query speed, then check results against known places."""
+"""Measure the grid files, check them against the shapes, and write a report."""
 
 from __future__ import annotations
 
 import csv
 import json
-import statistics
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
 from pathlib import Path
 from time import perf_counter
 
-import psycopg
+import numpy as np
+import rasterio
+from rasterio.warp import transform as reproject
 
 from data_test.config import (
+    ACCURACY_SAMPLE_POINTS,
+    ACCURACY_SAMPLE_SEED,
     BAND_ORDER,
-    BNG_SRID,
+    BNG_CRS,
     DEFAULT_RADIUS_METRES,
     FLOOD_SOURCES,
+    GRID_RESOLUTION_METRES,
     LONDON_BBOX_BNG,
-    SUPABASE_FREE_LIMIT_MB,
-    TARGET_DB_MB,
-    TARGET_QUERY_MS,
+    TARGET_DISTANCE_ERROR_METRES,
+    TARGET_GRID_MB,
+    TARGET_LOOKUP_MS,
 )
-from data_test.database import TABLE, SetupError
+from data_test.grid import (
+    GridBuild,
+    exact_nearest_by_band,
+    grid_path,
+    nearest_by_band,
+    read_build,
+)
 
 LOCATIONS_FILE = Path(__file__).with_name("locations.csv")
-
-# The bounded search keeps every lookup cheap, and a zone over the radius away
-# isn't useful to someone checking one home anyway.
-NEAREST_BY_BAND = f"""
-    WITH pin AS (
-        SELECT ST_Transform(ST_SetSRID(ST_MakePoint(%(lon)s, %(lat)s), 4326), {BNG_SRID}) AS g
-    )
-    SELECT z.source, z.band, MIN(ST_Distance(z.geom, pin.g)) AS metres
-    FROM {TABLE} z, pin
-    WHERE ST_DWithin(z.geom, pin.g, %(radius)s)
-    GROUP BY z.source, z.band
-"""
-
-IN_TEST_AREA = f"""
-    SELECT ST_Intersects(
-        ST_Transform(ST_SetSRID(ST_MakePoint(%(lon)s, %(lat)s), 4326), {BNG_SRID}),
-        ST_MakeEnvelope(%(minx)s, %(miny)s, %(maxx)s, %(maxy)s, {BNG_SRID})
-    )
-"""
 
 
 @dataclass(frozen=True)
@@ -53,6 +44,10 @@ class Location:
     longitude: float
     expectation: str
 
+    def to_bng(self) -> tuple[float, float]:
+        xs, ys = reproject("EPSG:4326", BNG_CRS, [self.longitude], [self.latitude])
+        return xs[0], ys[0]
+
 
 @dataclass
 class LocationResult:
@@ -60,20 +55,11 @@ class LocationResult:
     in_area: bool
     # {source: {band: metres}}
     nearest: dict[str, dict[str, float]] = field(default_factory=dict)
-    round_trip_ms: float = 0.0
-    server_ms: float = 0.0
+    lookup_ms: list[float] = field(default_factory=list)
 
     @property
     def check_passed(self) -> bool:
         return expectation_met(self.location.expectation, self.in_area, self.nearest)
-
-
-@dataclass
-class Sizes:
-    database_mb: float
-    table_mb: float
-    index_mb: float
-    pieces_by_source: dict[str, int]
 
 
 def expectation_met(expectation: str, in_area: bool, nearest: dict[str, dict[str, float]]) -> bool:
@@ -98,64 +84,67 @@ def read_locations(path: Path = LOCATIONS_FILE) -> list[Location]:
         ]
 
 
-def measure_sizes(conn: psycopg.Connection) -> Sizes:
-    database, table, index = conn.execute(
-        "SELECT pg_database_size(current_database()), "
-        "pg_total_relation_size(%(t)s::regclass), pg_indexes_size(%(t)s::regclass)",
-        {"t": TABLE},
-    ).fetchone()
-    pieces = dict(conn.execute(f"SELECT source, count(*) FROM {TABLE} GROUP BY source").fetchall())
-    mb = 1_048_576
-    return Sizes(database / mb, (table - index) / mb, index / mb, pieces)
+def in_test_area(x: float, y: float) -> bool:
+    min_x, min_y, max_x, max_y = LONDON_BBOX_BNG
+    return min_x <= x <= max_x and min_y <= y <= max_y
 
 
-def measure_location(conn: psycopg.Connection, location: Location, radius: float) -> LocationResult:
-    params = {"lat": location.latitude, "lon": location.longitude, "radius": radius}
-    in_area = conn.execute(
-        IN_TEST_AREA,
-        {
-            **params,
-            "minx": LONDON_BBOX_BNG[0],
-            "miny": LONDON_BBOX_BNG[1],
-            "maxx": LONDON_BBOX_BNG[2],
-            "maxy": LONDON_BBOX_BNG[3],
-        },
-    ).fetchone()[0]
-
-    started = perf_counter()
-    rows = conn.execute(NEAREST_BY_BAND, params).fetchall()
-    round_trip_ms = (perf_counter() - started) * 1_000
-
-    plan = conn.execute(f"EXPLAIN (ANALYZE, FORMAT JSON) {NEAREST_BY_BAND}", params).fetchone()[0]
-    plan = json.loads(plan) if isinstance(plan, str) else plan
-
-    nearest: dict[str, dict[str, float]] = {}
-    for source, band, metres in rows:
-        nearest.setdefault(source, {})[band] = float(metres)
-    return LocationResult(
-        location, in_area, nearest, round_trip_ms, float(plan[0]["Execution Time"])
-    )
+def compare_with_shapes(
+    grid_results: dict[str, dict[str, float]],
+    exact_results: dict[str, dict[str, float]],
+    radius: float,
+    resolution: int,
+) -> tuple[list[float], int]:
+    """Return the distance errors, and how many zones the grid missed or invented."""
+    errors: list[float] = []
+    mismatches = 0
+    for name, exact in exact_results.items():
+        grid = grid_results.get(name, {})
+        for band in BAND_ORDER:
+            if band in exact and band in grid:
+                errors.append(abs(exact[band] - grid[band]))
+            elif band in exact or band in grid:
+                # A zone right at the search edge can fall either side of it.
+                distance = exact.get(band, grid.get(band, 0.0))
+                if distance < radius - 2 * resolution:
+                    mismatches += 1
+    return errors, mismatches
 
 
 def format_nearest(bands: dict[str, float] | None, radius: float) -> str:
-    """Describe one source's result, e.g. 'High 120 m, Low on zone'."""
+    """Describe one source's result in rounded distances, e.g. 'High 120 m, Low on zone'."""
     if not bands:
         return f"None within {radius:,.0f} m"
     parts = []
     for band in BAND_ORDER:
         if band in bands:
             metres = bands[band]
-            parts.append(f"{band} on zone" if metres == 0 else f"{band} {metres:,.0f} m")
+            if metres == 0:
+                parts.append(f"{band} on zone")
+            elif metres < 10:
+                parts.append(f"{band} under 10 m")
+            else:
+                parts.append(f"{band} {round(metres, -1):,.0f} m")
     return ", ".join(parts)
 
 
-def build_report(sizes: Sizes, results: list[LocationResult], radius: float) -> str:
-    """Write the findings as Markdown. Holds no connection details."""
-    server = [result.server_ms for result in results]
-    trips = [result.round_trip_ms for result in results]
-    size_ok = sizes.database_mb <= TARGET_DB_MB
-    speed_ok = max(server) <= TARGET_QUERY_MS
+def verdict(passed: bool) -> str:
+    return "Pass" if passed else "Fail"
+
+
+def build_report(
+    builds: dict[str, GridBuild],
+    results: list[LocationResult],
+    comparisons: dict[str, tuple[list[float], int]],
+    radius: float,
+) -> str:
+    """Write the findings as Markdown."""
+    timings = [ms for result in results for ms in result.lookup_ms]
+    total_mb = sum(build.grid_mb for build in builds.values())
     passed = sum(result.check_passed for result in results)
+    errors = [error for pair in comparisons.values() for error in pair[0]]
+    mismatches = sum(pair[1] for pair in comparisons.values())
+    worst_error = max(errors, default=0.0)
 
     lines = [
         "# Flood data test",
@@ -167,32 +156,53 @@ def build_report(sizes: Sizes, results: list[LocationResult], radius: float) -> 
         "",
         "| Check | Result | Target | Verdict |",
         "|---|---|---|---|",
-        f"| Database size | {sizes.database_mb:,.0f} MB | Up to {TARGET_DB_MB} MB "
-        f"(free limit {SUPABASE_FREE_LIMIT_MB} MB) | {'Pass' if size_ok else 'Fail'} |",
-        f"| Slowest lookup on the database | {max(server):,.0f} ms | Up to {TARGET_QUERY_MS} ms "
-        f"| {'Pass' if speed_ok else 'Fail'} |",
+        f"| Grid files | {total_mb:,.1f} MB | Up to {TARGET_GRID_MB} MB "
+        f"| {verdict(total_mb <= TARGET_GRID_MB)} |",
+        f"| Slowest lookup | {max(timings, default=0):,.1f} ms | Up to {TARGET_LOOKUP_MS} ms "
+        f"| {verdict(max(timings, default=0) <= TARGET_LOOKUP_MS)} |",
+        f"| Largest distance error | {worst_error:,.1f} m | Up to "
+        f"{TARGET_DISTANCE_ERROR_METRES} m "
+        f"| {verdict(worst_error <= TARGET_DISTANCE_ERROR_METRES)} |",
+        f"| Zones missed or invented | {mismatches} of {len(errors) + mismatches} checked | None "
+        f"| {verdict(mismatches == 0)} |",
         f"| Known places as expected | {passed} of {len(results)} | All, or explained "
         f"| {'Pass' if passed == len(results) else 'Review'} |",
-        "",
-        "## Size",
-        "",
-        f"- Flood table: {sizes.table_mb:,.1f} MB",
-        f"- Spatial index: {sizes.index_mb:,.1f} MB",
     ]
-    for key, pieces in sorted(sizes.pieces_by_source.items()):
-        lines.append(f"- {FLOOD_SOURCES[key].label}: {pieces:,} stored pieces")
+    for key, build in sorted(builds.items()):
+        label = FLOOD_SOURCES[key].label
+        lines += [
+            "",
+            f"## {label}",
+            "",
+            f"- Grid file: {build.grid_mb:,.1f} MB at {build.resolution_metres} m",
+            f"- Unique shapes read: {build.shapes:,}",
+            f"- Overlapping shapes skipped: {build.duplicate_shapes:,}",
+            "",
+            "The grid area is larger by design, because any square a zone touches is marked.",
+            "",
+            "| Band | Shapes (km²) | Grid (km²) |",
+            "|---|---|---|",
+        ]
+        for band in BAND_ORDER:
+            if band in build.shape_km2:
+                lines.append(
+                    f"| {band} | {build.shape_km2[band]:,.2f} | {build.grid_km2[band]:,.2f} |"
+                )
+        lines += [
+            "",
+            "Coverage, north at the top. Each character is 5 km, and `#` holds a flood zone. "
+            "A blank patch inside London may be a missed download.",
+            "",
+            "```text",
+            *build.coverage,
+            "```",
+        ]
     lines += [
-        "",
-        "## Speed",
-        "",
-        f"- On the database: median {statistics.median(server):,.0f} ms, "
-        f"slowest {max(server):,.0f} ms",
-        f"- Including the network: median {statistics.median(trips):,.0f} ms, "
-        f"slowest {max(trips):,.0f} ms",
         "",
         "## Known places",
         "",
         "Expectations are rough checks on approximate coordinates, not proof of accuracy. "
+        "Distances are rounded to the nearest 10 m, and on zone means on or within about 5 m. "
         "Review means a person should look at that place on the Environment Agency map.",
         "",
         "| Place | Expected | Rivers and sea | Surface water | Check |",
@@ -201,20 +211,89 @@ def build_report(sizes: Sizes, results: list[LocationResult], radius: float) -> 
     for result in results:
         location = result.location
         expected = location.expectation.replace("_", " ").capitalize()
-        if not result.in_area:
-            rivers = surface = "Outside test area"
-        else:
-            rivers = format_nearest(result.nearest.get("rivers_and_sea"), radius)
-            surface = format_nearest(result.nearest.get("surface_water"), radius)
+        cells = {}
+        for key in FLOOD_SOURCES:
+            if not result.in_area:
+                cells[key] = "Outside test area"
+            elif key not in builds:
+                cells[key] = "Not built"
+            else:
+                cells[key] = format_nearest(result.nearest.get(key), radius)
         check = "OK" if result.check_passed else "Review"
-        lines.append(f"| {location.name} | {expected} | {rivers} | {surface} | {check} |")
+        lines.append(
+            f"| {location.name} | {expected} | {cells['rivers_and_sea']} "
+            f"| {cells['surface_water']} | {check} |"
+        )
     return "\n".join(lines) + "\n"
 
 
+def sample_points(
+    dataset: rasterio.DatasetReader, radius: float, count: int = ACCURACY_SAMPLE_POINTS
+) -> list[tuple[float, float]]:
+    """Pick repeatable random points near flood zones, away from the grid's edges."""
+    grid = dataset.read(1)
+    margin = int(radius / dataset.transform.a) + 1
+    rows, columns = np.nonzero(grid[margin:-margin, margin:-margin])
+    if rows.size == 0:
+        return []
+    generator = np.random.default_rng(ACCURACY_SAMPLE_SEED)
+    picks = generator.integers(0, rows.size, count)
+    resolution = dataset.transform.a
+    x = dataset.bounds.left + (columns[picks] + margin + generator.random(count)) * resolution
+    y = dataset.bounds.top - (rows[picks] + margin + generator.random(count)) * resolution
+    return list(zip(x.tolist(), y.tolist(), strict=True))
+
+
 def run(
-    conn: psycopg.Connection, radius: float = DEFAULT_RADIUS_METRES
-) -> tuple[Sizes, list[LocationResult]]:
-    if conn.execute("SELECT to_regclass(%s)", (f"{TABLE}_geom_idx",)).fetchone()[0] is None:
-        raise SetupError("The spatial index is missing, so a load didn't finish. Reset and reload.")
-    results = [measure_location(conn, location, radius) for location in read_locations()]
-    return measure_sizes(conn), results
+    grid_dir: Path,
+    source_paths: dict[str, list[Path]],
+    *,
+    radius: float = DEFAULT_RADIUS_METRES,
+    resolution: int = GRID_RESOLUTION_METRES,
+) -> str:
+    """Look up every known place in every built grid and return the report."""
+    locations = read_locations()
+    builds: dict[str, GridBuild] = {}
+    results = [LocationResult(location, in_test_area(*location.to_bng())) for location in locations]
+    comparisons: dict[str, tuple[list[float], int]] = {}
+
+    for key, source in FLOOD_SOURCES.items():
+        path = grid_path(grid_dir, source, resolution)
+        if not path.exists():
+            continue
+        builds[key] = read_build(path)
+        grid_results: dict[str, dict[str, float]] = {}
+        exact_results: dict[str, dict[str, float]] = {}
+        with rasterio.open(path) as dataset:
+            for result in results:
+                if not result.in_area:
+                    continue
+                x, y = result.location.to_bng()
+                started = perf_counter()
+                nearest = nearest_by_band(dataset, x, y, radius)
+                result.lookup_ms.append((perf_counter() - started) * 1_000)
+                result.nearest[key] = nearest
+                grid_results[result.location.name] = nearest
+                if source_paths.get(key):
+                    exact_results[result.location.name] = exact_nearest_by_band(
+                        source_paths[key], source, x, y, radius=radius
+                    )
+            if source_paths.get(key):
+                for index, (x, y) in enumerate(sample_points(dataset, radius)):
+                    name = f"Random point {index}"
+                    grid_results[name] = nearest_by_band(dataset, x, y, radius)
+                    exact_results[name] = exact_nearest_by_band(
+                        source_paths[key], source, x, y, radius=radius
+                    )
+        comparisons[key] = compare_with_shapes(grid_results, exact_results, radius, resolution)
+
+    if not builds:
+        raise FileNotFoundError("No grid files found. Run the build command first.")
+    return build_report(builds, results, comparisons, radius)
+
+
+def load_source_manifest(path: Path) -> dict[str, list[Path]]:
+    """Read which downloads each grid came from, so measure can check against them."""
+    if not path.exists():
+        return {}
+    return {key: [Path(p) for p in paths] for key, paths in json.loads(path.read_text()).items()}

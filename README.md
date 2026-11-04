@@ -5,7 +5,7 @@ quote arrives. Find your postcode, mark your home on the map, and get clear risk
 plain-English explanations.
 
 > **Status: planning.** There's no app yet. This repo currently holds a data test, which checks that
-> London's flood data fits the free database and can be searched quickly enough.
+> London's flood data can be stored in small grid files and searched quickly and accurately.
 
 **Guidance only.** Results will not be an insurance quote, survey or financial advice. They describe
 risk to an area of land, not whether a particular property will flood.
@@ -21,7 +21,7 @@ Groundwater and reservoir flooding won't be covered at launch, and the app will 
 
 ## Run the data test
 
-You'll need Python 3.11 or newer, and a Supabase project with PostGIS enabled.
+You'll need Python 3.11 or newer. The test doesn't use a database or need any credentials.
 
 **1. Set up**
 
@@ -29,58 +29,38 @@ You'll need Python 3.11 or newer, and a Supabase project with PostGIS enabled.
 python3 -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.lock
-cp .env.example .env
 ```
-
-Add your Supabase connection string to `.env`. Git ignores this file.
 
 **2. Download the data**
 
-Download the area around Greater London from each dataset, in British National Grid, and put the
-unzipped files in a `data/` folder. Git ignores this folder too.
+Download Greater London from each dataset as an ESRI Geodatabase, and unzip it into a `data/` folder.
+Git ignores this folder. Surface water is too large to download in one go, so draw a few areas.
+They can overlap.
 
-- [Risk of Flooding from Rivers and Sea](https://environment.data.gov.uk/explore/96ab4342-82c1-4095-87f1-0082e8d84ef1?download=true)
-- [Risk of Flooding from Surface Water](https://environment.data.gov.uk/explore/b5aaa28d-6eb9-460e-8d6f-43caa71fbe0e?download=true)
+- [Risk of Flooding from Rivers and Sea](https://environment.data.gov.uk/explore/96ab4342-82c1-4095-87f1-0082e8d84ef1?download=true), layer `rofrs_4band`
+- [Risk of Flooding from Surface Water](https://environment.data.gov.uk/explore/b5aaa28d-6eb9-460e-8d6f-43caa71fbe0e?download=true), layer `rofsw`
 
-**3. Check the files and estimate the size**
+**3. Build the grid files and measure them**
 
-These commands don't touch the database. Replace the paths with your own.
-
-```bash
-python -m data_test inspect data/RoFRS.gdb data/RoFSW.gdb
-python -m data_test estimate rivers_and_sea data/RoFRS.gdb
-python -m data_test estimate surface_water data/RoFSW.gdb
-```
-
-If the raw size is close to 400 MB or above, compare it with a simplified version by adding
-`--simplify-metres 2`.
-
-**4. Load and measure**
+Replace the paths with your own. List every download for a dataset in the same command.
 
 ```bash
-python -m data_test load rivers_and_sea data/RoFRS.gdb
-python -m data_test load surface_water data/RoFSW.gdb
+python -m data_test inspect data/*.gdb
+python -m data_test build rivers_and_sea data/rofrs_4band.gdb
+python -m data_test build surface_water data/rofsw_1.gdb data/rofsw_2.gdb
 python -m data_test measure
 ```
 
-Loading stops if the database reaches 400 MB. The report is saved to `reports/flood-data-test.md`.
-
-**5. Start again if needed**
-
-```bash
-python -m data_test reset --yes
-```
+The grid files go in `grids/`, and the report goes in `reports/flood-data-test.md`. Each build prints
+a coverage map, so you can spot any part of London that was missed.
 
 ## Run the tests
 
 ```bash
-export TEST_DATABASE_URL=postgresql://postgres:test@localhost:5432/perilmap_test
 ruff check .
 ruff format --check .
 pytest
 ```
-
-Without `TEST_DATABASE_URL`, the database tests are skipped. CI always runs them against PostGIS.
 
 ## Data sources
 

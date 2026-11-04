@@ -5,7 +5,7 @@ from pathlib import Path
 import pytest
 
 from data_test.config import FLOOD_SOURCES, LONDON_BBOX_BNG
-from data_test.sources import SourceFileError, estimate, iter_batches, normalise_band
+from data_test.sources import SourceFileError, iter_batches, normalise_band
 from tests.helpers import square, write_flood_file
 
 RIVERS = FLOOD_SOURCES["rivers_and_sea"]
@@ -73,22 +73,6 @@ def test_unknown_band_in_a_file_is_refused(tmp_path: Path) -> None:
     path = write_flood_file(tmp_path / "flood.gpkg", [("Very High", square(*IN_LONDON))])
     with pytest.raises(SourceFileError, match="Very High"):
         list(iter_batches(path, RIVERS))
-
-
-def test_estimate_counts_shapes_and_bands(tmp_path: Path) -> None:
-    path = write_flood_file(
-        tmp_path / "flood.gpkg",
-        [
-            ("High", square(*IN_LONDON)),
-            ("High", square(531_000, 180_000)),
-            ("Low", square(532_000, 180_000)),
-        ],
-    )
-    result = estimate([path], RIVERS)
-    assert result.features == 3
-    assert result.vertices == 15
-    assert result.geometry_bytes > 0
-    assert result.bands == {"High": 2, "Low": 1}
 
 
 def test_test_area_covers_central_london() -> None:
