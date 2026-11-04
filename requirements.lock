@@ -2,7 +2,7 @@ certifi==2026.10.23
     # via pyogrio
 iniconfig==2.3.1
     # via pytest
-numpy==2.5.4
+numpy==2.4.6
     # via
     #   perilmap (pyproject.toml)
     #   pyogrio
@@ -13,7 +13,7 @@ packaging==26.3
     #   pytest
 pluggy==1.7.0
     # via pytest
-psycopg==3.3.8
+psycopg[binary]==3.3.8
     # via perilmap (pyproject.toml)
 psycopg-binary==3.3.8
     # via psycopg
@@ -31,3 +31,5 @@ ruff==0.17.3
     # via perilmap (pyproject.toml)
 shapely==2.2.0
     # via perilmap (pyproject.toml)
+typing-extensions==4.16.0
+    # via psycopg
