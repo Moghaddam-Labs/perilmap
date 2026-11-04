@@ -12,6 +12,6 @@ PerilMap is at the planning stage and has no released versions. Fixes go to the 
 
 ## Handling secrets and personal data
 
-- Database credentials stay in a local `.env` file, which Git ignores.
-- Connection errors have the password removed before they're shown.
-- The data test uses landmark locations only. It doesn't handle anyone's address.
+- The data test needs no credentials and doesn't connect to a database.
+- It uses landmark locations only, so it doesn't handle anyone's address.
+- Credentials added later stay in a local `.env` file, which Git ignores.

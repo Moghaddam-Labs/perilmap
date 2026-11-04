@@ -1,16 +1,13 @@
-"""Read flood polygons from downloaded files. No database needed."""
+"""Read flood polygons from downloaded files."""
 
 from __future__ import annotations
 
-from collections import Counter
-from collections.abc import Iterator, Sequence
-from dataclasses import dataclass, field
+from collections.abc import Iterator
 from pathlib import Path
 
 import pyogrio
-import shapely
 
-from data_test.config import BAND_ORDER, BNG_SRID, LONDON_BBOX_BNG, FloodSource
+from data_test.config import BAND_ORDER, BNG_CRS, LONDON_BBOX_BNG, READ_BATCH_SIZE, FloodSource
 
 
 class SourceFileError(ValueError):
@@ -56,10 +53,10 @@ def resolve_band_field(path: Path, layer: str, source: FloodSource) -> str:
 def check_crs(path: Path, layer: str) -> None:
     """Refuse files that aren't in British National Grid, so distances stay in metres."""
     crs = str(pyogrio.read_info(path, layer=layer)["crs"] or "")
-    if str(BNG_SRID) not in crs and "OSGB" not in crs.upper():
+    if BNG_CRS.split(":")[1] not in crs and "OSGB" not in crs.upper():
         raise SourceFileError(
             f"{path.name} uses {crs or 'an unknown coordinate system'}, "
-            f"but the test needs EPSG:{BNG_SRID}. Download it in British National Grid."
+            f"but the test needs {BNG_CRS}. Download it in British National Grid."
         )
 
 
@@ -69,7 +66,7 @@ def iter_batches(
     *,
     layer: str | None = None,
     bbox: tuple[int, int, int, int] = LONDON_BBOX_BNG,
-    batch_size: int = 5_000,
+    batch_size: int = READ_BATCH_SIZE,
 ) -> Iterator[list[tuple[str, bytes]]]:
     """Yield lists of (band, WKB geometry) without loading the whole file into memory."""
     layer_name = resolve_layer(path, source, layer)
@@ -92,38 +89,3 @@ def iter_batches(
                 for band, geometry in zip(bands, geometries, strict=True)
                 if geometry is not None
             ]
-
-
-@dataclass
-class Estimate:
-    """How much geometry a source holds inside the test area."""
-
-    features: int = 0
-    vertices: int = 0
-    geometry_bytes: int = 0
-    bands: Counter[str] = field(default_factory=Counter)
-
-    @property
-    def geometry_mb(self) -> float:
-        return self.geometry_bytes / 1_048_576
-
-
-def estimate(
-    paths: Sequence[Path],
-    source: FloodSource,
-    *,
-    layer: str | None = None,
-    simplify_metres: float = 0.0,
-) -> Estimate:
-    """Measure raw geometry size before anything touches the database."""
-    result = Estimate()
-    for path in paths:
-        for batch in iter_batches(path, source, layer=layer):
-            geometries = shapely.from_wkb([geometry for _, geometry in batch])
-            if simplify_metres > 0:
-                geometries = shapely.simplify(geometries, simplify_metres, preserve_topology=True)
-            result.features += len(batch)
-            result.vertices += int(shapely.get_num_coordinates(geometries).sum())
-            result.geometry_bytes += sum(len(wkb) for wkb in shapely.to_wkb(geometries))
-            result.bands.update(band for band, _ in batch)
-    return result

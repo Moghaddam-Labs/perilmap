@@ -10,8 +10,10 @@ __pycache__/
 .pytest_cache/
 .ruff_cache/
 
-# Downloaded flood data stays out of the repo
+# Downloaded flood data and built grids stay out of the repo
 data/
+grids/
+reports/
 *.gdb/
 *.gpkg
 *.gpkg-*

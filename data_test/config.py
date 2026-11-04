@@ -5,24 +5,27 @@ from __future__ import annotations
 from dataclasses import dataclass
 
 # Greater London's bounding box in British National Grid metres (EPSG:27700).
-# A box is slightly larger than London itself, so size results err on the high side.
 LONDON_BBOX_BNG: tuple[int, int, int, int] = (503_000, 155_000, 562_000, 201_500)
+BNG_CRS = "EPSG:27700"
 
-BNG_SRID = 27_700
+# Each band has its own bit, so one grid square can hold several bands. Thin bands
+# between others would otherwise vanish, which put some distances over 700 m out.
+BAND_BITS: dict[str, int] = {"Very Low": 1, "Low": 2, "Medium": 4, "High": 8}
 BAND_ORDER: tuple[str, ...] = ("High", "Medium", "Low", "Very Low")
 
-# Supabase's free plan allows 500 MB. We stop early to leave room for indexes
-# and to avoid the project being switched to read-only.
-DEFAULT_MAX_DB_MB = 400
-SUPABASE_FREE_LIMIT_MB = 500
+GRID_RESOLUTION_METRES = 5
+READ_BATCH_SIZE = 500
+COVERAGE_BLOCK_METRES = 5_000
+DEFAULT_RADIUS_METRES = 1_000
 
 # Targets the test reports against.
-TARGET_DB_MB = 400
-TARGET_QUERY_MS = 500
+TARGET_GRID_MB = 50
+TARGET_LOOKUP_MS = 100
+TARGET_DISTANCE_ERROR_METRES = 10
 
-DEFAULT_RADIUS_METRES = 1_000
-DEFAULT_SUBDIVIDE_VERTICES = 256
-DEFAULT_BATCH_SIZE = 5_000
+# Random points used to check the grid against the original shapes.
+ACCURACY_SAMPLE_POINTS = 250
+ACCURACY_SAMPLE_SEED = 7
 
 
 @dataclass(frozen=True)

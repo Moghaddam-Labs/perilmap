@@ -1,16 +1,23 @@
 from __future__ import annotations
 
+from pathlib import Path
+
 import pytest
 
+from data_test.config import FLOOD_SOURCES
+from data_test.grid import GridBuild, build_grid, grid_path
 from data_test.measure import (
     Location,
     LocationResult,
-    Sizes,
     build_report,
+    compare_with_shapes,
     expectation_met,
     format_nearest,
+    load_source_manifest,
     read_locations,
+    run,
 )
+from tests.helpers import square, write_flood_file
 
 
 def test_location_list_has_twenty_valid_places() -> None:
@@ -22,9 +29,12 @@ def test_location_list_has_twenty_valid_places() -> None:
         "away_from_river",
         "outside_area",
     }
-    for location in locations:
-        assert 50 < location.latitude < 52
-        assert -2 < location.longitude < 1
+
+
+def test_location_converts_to_british_national_grid() -> None:
+    x, y = Location("Charing Cross", 51.5074, -0.1278, "near_river").to_bng()
+    assert x == pytest.approx(530_000, abs=500)
+    assert y == pytest.approx(180_400, abs=500)
 
 
 @pytest.mark.parametrize(
@@ -51,42 +61,98 @@ def test_unknown_expectation_is_an_error() -> None:
         expectation_met("somewhere", True, {})
 
 
-def test_format_nearest_orders_bands_and_marks_zone_hits() -> None:
-    text = format_nearest({"Low": 1234.4, "High": 0.0}, 1000)
-    assert text == "High on zone, Low 1,234 m"
+@pytest.mark.parametrize(
+    ("bands", "text"),
+    [
+        ({"Low": 1234.4, "High": 0.0}, "High on zone, Low 1,230 m"),
+        ({"Medium": 6.0}, "Medium under 10 m"),
+        ({}, "None within 1,000 m"),
+        (None, "None within 1,000 m"),
+    ],
+)
+def test_format_nearest(bands: dict[str, float] | None, text: str) -> None:
+    assert format_nearest(bands, 1000) == text
 
 
-def test_format_nearest_states_the_radius_when_nothing_is_found() -> None:
-    assert format_nearest({}, 1000) == "None within 1,000 m"
+def test_comparison_collects_errors_and_mismatches() -> None:
+    exact = {"A": {"High": 100.0, "Low": 50.0}, "B": {"Medium": 995.0}}
+    grid = {"A": {"High": 103.0}, "B": {}}
+    errors, mismatches = compare_with_shapes(grid, exact, radius=1000, resolution=5)
+    assert errors == [3.0]
+    assert mismatches == 1  # Low was missed. B's zone sits right at the search edge.
 
 
-def make_result(name: str, expectation: str, server_ms: float) -> LocationResult:
+def make_build(grid_mb: float = 1.0, grid_area: float = 10.0) -> GridBuild:
+    return GridBuild(
+        source="rivers_and_sea",
+        resolution_metres=5,
+        grid_mb=grid_mb,
+        build_seconds=1.0,
+        shapes=10,
+        duplicate_shapes=2,
+        shape_km2={"Low": 10.0},
+        grid_km2={"Low": grid_area},
+        coverage=["#."],
+        built_at="2026-11-04T00:00:00+00:00",
+    )
+
+
+def make_result(name: str, expectation: str, ms: float = 4.0) -> LocationResult:
     return LocationResult(
         Location(name, 51.5, -0.1, expectation),
         True,
-        {"rivers_and_sea": {"Low": 5.0}},
-        server_ms + 20,
-        server_ms,
+        {"rivers_and_sea": {"Low": 50.0}},
+        [ms],
     )
 
 
 def test_report_passes_within_targets() -> None:
     report = build_report(
-        Sizes(120.0, 90.0, 20.0, {"rivers_and_sea": 1000}),
-        [make_result("Thamesmead", "near_river", 40.0)],
+        {"rivers_and_sea": make_build()},
+        [make_result("Thamesmead", "near_river")],
+        {"rivers_and_sea": ([2.0], 0)},
         1000,
     )
-    assert "| Database size | 120 MB | Up to 400 MB (free limit 500 MB) | Pass |" in report
-    assert "| Slowest lookup on the database | 40 ms | Up to 500 ms | Pass |" in report
-    assert "| Thamesmead | Near river | Low 5 m | None within 1,000 m | OK |" in report
+    assert "| Grid files | 1.0 MB | Up to 50 MB | Pass |" in report
+    assert "| Slowest lookup | 4.0 ms | Up to 100 ms | Pass |" in report
+    assert "| Largest distance error | 2.0 m | Up to 10 m | Pass |" in report
+    assert "| Zones missed or invented | 0 of 1 checked | None | Pass |" in report
+    assert "| Thamesmead | Near river | Low 50 m | Not built | OK |" in report
+    assert "```text\n#.\n```" in report
 
 
-def test_report_fails_when_too_big_slow_or_unexpected() -> None:
+def test_report_fails_when_targets_are_missed() -> None:
     report = build_report(
-        Sizes(450.0, 400.0, 40.0, {}),
-        [make_result("Highgate", "away_from_river", 900.0)],
+        {"rivers_and_sea": make_build(grid_mb=80.0)},
+        [make_result("Highgate", "away_from_river", ms=300.0)],
+        {"rivers_and_sea": ([40.0], 1)},
         1000,
     )
-    assert "| 450 MB |" in report and "| Fail |" in report
-    assert "| 900 ms | Up to 500 ms | Fail |" in report
-    assert "| Highgate | Away from river | Low 5 m | None within 1,000 m | Review |" in report
+    assert "| 80.0 MB | Up to 50 MB | Fail |" in report
+    assert "| 300.0 ms | Up to 100 ms | Fail |" in report
+    assert "| 40.0 m | Up to 10 m | Fail |" in report
+    assert "| 1 of 2 checked | None | Fail |" in report
+    assert "| Highgate | Away from river | Low 50 m | Not built | Review |" in report
+
+
+def test_full_run_from_download_to_report(tmp_path: Path) -> None:
+    source = FLOOD_SOURCES["rivers_and_sea"]
+    download = write_flood_file(
+        tmp_path / "flood.gpkg",
+        [("Low", square(530_000, 180_000)), ("High", square(545_000, 180_000))],
+    )
+    build_grid([download], source, grid_path(tmp_path, source, 5))
+    report = run(tmp_path, {"rivers_and_sea": [download]})
+    assert "Largest distance error" in report and "| Fail |" not in report
+    assert "Rivers and sea" in report
+    assert "| Oxford | Outside area | Outside test area | Outside test area | OK |" in report
+    assert "| Not built |" in report
+
+
+def test_run_without_grids_explains_what_to_do(tmp_path: Path) -> None:
+    with pytest.raises(FileNotFoundError, match="build command"):
+        run(tmp_path, {})
+
+
+def test_missing_manifest_means_no_comparison(tmp_path: Path) -> None:
+    assert load_source_manifest(tmp_path / "sources.json") == {}
