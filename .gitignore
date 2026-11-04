@@ -1,0 +1,21 @@
+# Secrets
+.env
+.env.*
+!.env.example
+
+# Python
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+
+# Downloaded flood data stays out of the repo
+data/
+*.gdb/
+*.gpkg
+*.gpkg-*
+*.zip
+
+# macOS
+.DS_Store

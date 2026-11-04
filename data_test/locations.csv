@@ -1,0 +1,21 @@
+name,latitude,longitude,expectation
+Thamesmead,51.5000,0.1160,near_river
+Barking Riverside,51.5190,0.1170,near_river
+Greenwich Peninsula,51.5000,0.0030,near_river
+Isle of Dogs,51.4950,-0.0190,near_river
+Rotherhithe,51.4990,-0.0520,near_river
+Nine Elms,51.4790,-0.1280,near_river
+Putney Embankment,51.4680,-0.2170,near_river
+Chiswick Mall,51.4880,-0.2470,near_river
+Kingston upon Thames,51.4100,-0.3050,near_river
+Stratford,51.5430,-0.0020,near_river
+Parliament Hill,51.5600,-0.1600,away_from_river
+Highgate,51.5710,-0.1460,away_from_river
+Muswell Hill,51.5900,-0.1430,away_from_river
+Crystal Palace,51.4200,-0.0730,away_from_river
+Harrow on the Hill,51.5730,-0.3370,away_from_river
+Shooters Hill,51.4670,0.0670,away_from_river
+Biggin Hill,51.3200,0.0350,away_from_river
+Sydenham Hill,51.4320,-0.0800,away_from_river
+Brighton,50.8225,-0.1372,outside_area
+Oxford,51.7520,-1.2577,outside_area
