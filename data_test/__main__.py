@@ -11,15 +11,18 @@ from pathlib import Path
 import pyogrio
 import rasterio
 
-from data_test import coverage, grid, measure, sources
+from data_test import coverage, grid, heat, measure, sources
 from data_test.config import DEFAULT_RADIUS_METRES, FLOOD_SOURCES, GRID_RESOLUTION_METRES
 
 GRID_DIR = Path("grids")
+HEAT_PATH = Path("built/heat_air_temperature.gpkg")
 MANIFEST_PATH = GRID_DIR / "sources.json"
 REPORT_PATH = Path("reports/flood-data-test.md")
 
 # GDAL warns about shapes with many parts, which this data has by design.
 warnings.filterwarnings("ignore", message=".*organizePolygons.*", category=RuntimeWarning)
+# The heat source stores unused measure values on its shapes, which are dropped anyway.
+warnings.filterwarnings("ignore", message=".*Measured.*", category=UserWarning)
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -42,6 +45,8 @@ def build_parser() -> argparse.ArgumentParser:
         "coverage", help="List the blank squares inside London that should show No data"
     )
     coverage_command.add_argument("--resolution-metres", type=int, default=GRID_RESOLUTION_METRES)
+    heat_command = commands.add_parser("heat", help="Build the small heat file")
+    heat_command.add_argument("source", type=Path)
     return parser
 
 
@@ -81,6 +86,7 @@ def run_measure(args: argparse.Namespace) -> int:
         measure.load_source_manifest(MANIFEST_PATH),
         radius=args.radius_metres,
         resolution=args.resolution_metres,
+        heat_path=HEAT_PATH,
     )
     REPORT_PATH.parent.mkdir(exist_ok=True)
     REPORT_PATH.write_text(report, encoding="utf-8")
@@ -106,6 +112,13 @@ def run_coverage(args: argparse.Namespace) -> int:
     return 0
 
 
+def run_heat(args: argparse.Namespace) -> int:
+    build = heat.build_heat_file(args.source, HEAT_PATH)
+    print(f"Heat: {build.file_mb:,.1f} MB file with {build.areas:,} areas")
+    print(f"London's range: {build.min_c:.1f} to {build.max_c:.1f} °C")
+    return 0
+
+
 def main(argv: list[str] | None = None) -> int:
     args = build_parser().parse_args(argv)
     handlers = {
@@ -113,12 +126,14 @@ def main(argv: list[str] | None = None) -> int:
         "build": run_build,
         "measure": run_measure,
         "coverage": run_coverage,
+        "heat": run_heat,
     }
     try:
         return handlers[args.command](args)
     except (
         FileNotFoundError,
         sources.SourceFileError,
+        heat.HeatFileError,
         pyogrio.errors.DataSourceError,
     ) as error:
         print(f"Error: {error}", file=sys.stderr)

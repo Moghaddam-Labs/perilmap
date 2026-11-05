@@ -23,6 +23,7 @@ from data_test.config import (
     GRID_RESOLUTION_METRES,
     TARGET_DISTANCE_ERROR_METRES,
     TARGET_GRID_MB,
+    TARGET_HEAT_FILE_MB,
     TARGET_LOOKUP_MS,
 )
 from data_test.coverage import Coverage, CoverageStatus, NoDataCheck, check_no_data_list
@@ -32,6 +33,16 @@ from data_test.grid import (
     grid_path,
     nearest_by_band,
     read_build,
+)
+from data_test.heat import (
+    EXPLANATION,
+    OUTPUT_FIELDS,
+    OWN_CALCULATION_NOTE,
+    SOURCE_CREDIT,
+    SOURCE_DESCRIPTION,
+    HeatBuild,
+    HeatLookup,
+    format_heat,
 )
 
 LOCATIONS_FILE = Path(__file__).with_name("locations.csv")
@@ -57,6 +68,7 @@ class LocationResult:
     nearest: dict[str, dict[str, float]] = field(default_factory=dict)
     statuses: dict[str, CoverageStatus] = field(default_factory=dict)
     lookup_ms: list[float] = field(default_factory=list)
+    heat: str = "Not built"
 
     @property
     def check_passed(self) -> bool:
@@ -144,6 +156,7 @@ def build_report(
     comparisons: dict[str, tuple[list[float], int]],
     radius: float,
     no_data_checks: dict[str, NoDataCheck] | None = None,
+    heat_build: HeatBuild | None = None,
 ) -> str:
     """Write the findings as Markdown."""
     timings = [ms for result in results for ms in result.lookup_ms]
@@ -180,6 +193,11 @@ def build_report(
         lines.append(
             f"| {FLOOD_SOURCES[key].label} No data list matches the grid "
             f"| {'Yes' if check.matches else 'No'} | Yes | {verdict(check.matches)} |"
+        )
+    if heat_build:
+        lines.append(
+            f"| Heat file | {heat_build.file_mb:,.1f} MB | Up to {TARGET_HEAT_FILE_MB} MB "
+            f"| {verdict(heat_build.file_mb <= TARGET_HEAT_FILE_MB)} |"
         )
     for key, build in sorted(builds.items()):
         label = FLOOD_SOURCES[key].label
@@ -222,6 +240,20 @@ def build_report(
                 f"Within {radius:,.0f} m of a blank square or the edge of London, results are "
                 f"marked may be incomplete. That applies to {check.near_gap_km2:,.0f} km².",
             ]
+    if heat_build:
+        lines += [
+            "",
+            "## Heat",
+            "",
+            f"- What the number is: {SOURCE_DESCRIPTION} ({SOURCE_CREDIT}).",
+            f"- Fields kept: {', '.join(OUTPUT_FIELDS)}, plus the area's shape.",
+            f"- Areas: {heat_build.areas:,}, covering {heat_build.km2:,.0f} km². The rest of "
+            "London is mainly the River Thames, and shows No data.",
+            f"- London's range: {heat_build.min_c:.1f} to {heat_build.max_c:.1f} °C. "
+            f"{OWN_CALCULATION_NOTE}",
+            "",
+            f"Shown beside each result: {EXPLANATION}",
+        ]
     lines += [
         "",
         "## Known places",
@@ -230,8 +262,8 @@ def build_report(
         "Distances are rounded to the nearest 10 m, and on zone means on or within about 5 m. "
         "Review means a person should look at that place on the Environment Agency map.",
         "",
-        "| Place | Expected | Rivers and sea | Surface water | Check |",
-        "|---|---|---|---|---|",
+        "| Place | Expected | Rivers and sea | Surface water | Heat | Check |",
+        "|---|---|---|---|---|---|",
     ]
     for result in results:
         location = result.location
@@ -247,7 +279,7 @@ def build_report(
         check = "OK" if result.check_passed else "Review"
         lines.append(
             f"| {location.name} | {expected} | {cells['rivers_and_sea']} "
-            f"| {cells['surface_water']} | {check} |"
+            f"| {cells['surface_water']} | {result.heat} | {check} |"
         )
     return "\n".join(lines) + "\n"
 
@@ -276,6 +308,7 @@ def run(
     radius: float = DEFAULT_RADIUS_METRES,
     resolution: int = GRID_RESOLUTION_METRES,
     coverage: Coverage | None = None,
+    heat_path: Path | None = None,
 ) -> str:
     """Look up every known place in every built grid and return the report."""
     coverage = coverage or Coverage.load()
@@ -322,7 +355,18 @@ def run(
 
     if not builds:
         raise FileNotFoundError("No grid files found. Run the build command first.")
-    return build_report(builds, results, comparisons, radius, no_data_checks)
+    heat_build = None
+    if heat_path and heat_path.exists():
+        lookup = HeatLookup(heat_path)
+        heat_build = lookup.build
+        for result in results:
+            if not result.in_area:
+                result.heat = "Not available here yet"
+                continue
+            started = perf_counter()
+            result.heat = format_heat(lookup.find(*result.location.to_bng()))
+            result.lookup_ms.append((perf_counter() - started) * 1_000)
+    return build_report(builds, results, comparisons, radius, no_data_checks, heat_build)
 
 
 def load_source_manifest(path: Path) -> dict[str, list[Path]]:

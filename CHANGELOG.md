@@ -8,6 +8,8 @@ All notable changes to PerilMap are recorded here. The format follows
 
 ### Added
 
+- Heat data: a small file of modelled average summer air temperature for London's neighbourhoods,
+  with the source's social measures left out, and labelled comparisons.
 - README banner, with its map drawn from Environment Agency flood data for the Thames.
 - Repo foundations: README, licence, security policy, contribution notes, CI and Dependabot.
 - Flood data test: estimates London's Environment Agency flood data, loads it into PostGIS with a

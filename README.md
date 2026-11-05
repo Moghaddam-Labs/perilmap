@@ -16,8 +16,8 @@ risk to an area of land, not whether a particular property will flood.
 
 - **England first, starting with London.** Each region is a plug-in, so the core never hard-codes one.
 - **Flooding:** rivers and sea, and surface water, with the distance to the nearest zone in each band.
-- **Subsidence:** a rough area indicator from free geology data.
-- **Heat:** temperature exposure across London.
+- **Subsidence:** a London-wide explainer, not a rating for each home. The free national data isn't suitable for local use.
+- **Heat:** how an area's modelled average summer temperature compares across London, not a risk rating.
 
 Groundwater and reservoir flooding won't be covered at launch, and the app will say so plainly.
 
@@ -41,6 +41,10 @@ They can overlap.
 
 - [Risk of Flooding from Rivers and Sea](https://environment.data.gov.uk/explore/96ab4342-82c1-4095-87f1-0082e8d84ef1?download=true), layer `rofrs_4band`
 - [Risk of Flooding from Surface Water](https://environment.data.gov.uk/explore/b5aaa28d-6eb9-460e-8d6f-43caa71fbe0e?download=true), layer `rofsw`
+- [Social and physical risk variables](https://cityhall.maps.arcgis.com/home/item.html?id=bc06d80731f146b393f8631a0f98c213), as a File Geodatabase
+
+The heat step keeps only the temperature, borough name and area shape. The source's social measures,
+such as income and ethnicity, are never read into PerilMap.
 
 **3. Build the grid files and measure them**
 
@@ -51,6 +55,7 @@ python -m data_test inspect data/*.gdb
 python -m data_test build rivers_and_sea data/rofrs_4band.gdb
 python -m data_test build surface_water data/rofsw_1.gdb data/rofsw_2.gdb
 python -m data_test coverage
+python -m data_test heat data/GLA_ClimateRiskVariables.gdb
 python -m data_test measure
 ```
 
@@ -82,6 +87,7 @@ pytest
 |---|---|---|
 | [Risk of Flooding from Rivers and Sea](https://www.data.gov.uk/dataset/943d2bbb-aa08-45d1-96cb-42556cd01d94/risk-of-flooding-from-rivers-and-sea2) | Environment Agency | [Open Government Licence v3.0](https://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/) |
 | [Risk of Flooding from Surface Water](https://www.data.gov.uk/dataset/risk-of-flooding-from-surface-water3) | Environment Agency | [Open Government Licence v3.0](https://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/) |
+| [Climate Risk Mapping, mean air temperature](https://data.london.gov.uk/dataset/climate-risk-mapping) | Greater London Authority, Bloomberg Associates and Arup | [Open Government Licence v3.0](https://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/) |
 | [Greater London boundary](https://data.london.gov.uk/dataset/statistical-gis-boundary-files-london) | Greater London Authority | [Open Government Licence v2.0](https://www.nationalarchives.gov.uk/doc/open-government-licence/version/2/) |
 
 © Environment Agency copyright and/or database right 2025. All rights reserved.
