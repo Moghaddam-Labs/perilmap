@@ -1,3 +1,5 @@
+![PerilMap: shows the climate risks around a home, before the insurance quote arrives](docs/assets/readme-banner.png)
+
 # PerilMap
 
 PerilMap shows how exposed the area around a home is to climate-related perils, before the insurance
