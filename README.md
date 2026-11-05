@@ -21,6 +21,16 @@ risk to an area of land, not whether a particular property will flood.
 
 Groundwater and reservoir flooding won't be covered at launch, and the app will say so plainly.
 
+## How the code is organised
+
+- `perilmap/core`: the region-agnostic core. It finds the region for a location and gathers a result
+  from each peril. It knows nothing about any real place, and a test enforces that.
+- `data_test`: builds and checks the flood and heat data.
+
+Adding a region or peril means writing a plug-in, not changing the core. Each plug-in returns a result
+that must say what it means, how sure it is and what someone can do next, and must credit its sources.
+A gap in the data can't carry a number, so it can never look like a low risk.
+
 ## Run the data test
 
 You'll need Python 3.11 or newer. The test doesn't use a database or need any credentials.
