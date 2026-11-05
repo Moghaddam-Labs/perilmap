@@ -4,8 +4,9 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-# Greater London's bounding box in British National Grid metres (EPSG:27700).
-LONDON_BBOX_BNG: tuple[int, int, int, int] = (503_000, 155_000, 562_000, 201_500)
+# Greater London's bounding box in British National Grid metres (EPSG:27700), plus a margin
+# wider than the search radius. Corners sit on whole kilometres, so squares line up.
+LONDON_BBOX_BNG: tuple[int, int, int, int] = (502_000, 154_000, 563_000, 202_000)
 BNG_CRS = "EPSG:27700"
 
 # Each band has its own bit, so one grid square can hold several bands. Thin bands
@@ -16,6 +17,7 @@ BAND_ORDER: tuple[str, ...] = ("High", "Medium", "Low", "Very Low")
 GRID_RESOLUTION_METRES = 5
 READ_BATCH_SIZE = 500
 COVERAGE_BLOCK_METRES = 5_000
+COVERAGE_SQUARE_METRES = 1_000
 DEFAULT_RADIUS_METRES = 1_000
 
 # Targets the test reports against.
@@ -35,10 +37,15 @@ class FloodSource:
     key: str
     label: str
     default_layer: str
+    # True when one download covered all of London, so a blank area means no flood zone.
+    # False when many separate downloads were used, so a blank area could be a gap.
+    fully_downloaded: bool = False
     band_fields: tuple[str, ...] = ("Risk_band", "Risk_band3")
 
 
 FLOOD_SOURCES: dict[str, FloodSource] = {
-    "rivers_and_sea": FloodSource("rivers_and_sea", "Rivers and sea", "RoFRS_4band"),
+    "rivers_and_sea": FloodSource(
+        "rivers_and_sea", "Rivers and sea", "RoFRS_4band", fully_downloaded=True
+    ),
     "surface_water": FloodSource("surface_water", "Surface water", "RoFSW"),
 }

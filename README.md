@@ -48,11 +48,23 @@ Replace the paths with your own. List every download for a dataset in the same c
 python -m data_test inspect data/*.gdb
 python -m data_test build rivers_and_sea data/rofrs_4band.gdb
 python -m data_test build surface_water data/rofsw_1.gdb data/rofsw_2.gdb
+python -m data_test coverage
 python -m data_test measure
 ```
 
 The grid files go in `grids/`, and the report goes in `reports/flood-data-test.md`. Each build prints
 a coverage map, so you can spot any part of London that was missed.
+
+The `coverage` command checks surface water against the official London boundary and updates
+`data_test/reference/no_data_squares.csv`. Those squares show No data, because the files can't prove
+whether they were downloaded. `measure` fails if that list no longer matches the grid.
+
+| Where the pin is | Result shown |
+|---|---|
+| Outside the London boundary | Not available here yet |
+| In a blank surface water square | No data |
+| Within the search radius of a blank square or London's edge | Surface water result, marked as may be incomplete |
+| Anywhere else in London | Full result |
 
 ## Run the tests
 
@@ -68,8 +80,13 @@ pytest
 |---|---|---|
 | [Risk of Flooding from Rivers and Sea](https://www.data.gov.uk/dataset/943d2bbb-aa08-45d1-96cb-42556cd01d94/risk-of-flooding-from-rivers-and-sea2) | Environment Agency | [Open Government Licence v3.0](https://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/) |
 | [Risk of Flooding from Surface Water](https://www.data.gov.uk/dataset/risk-of-flooding-from-surface-water3) | Environment Agency | [Open Government Licence v3.0](https://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/) |
+| [Greater London boundary](https://data.london.gov.uk/dataset/statistical-gis-boundary-files-london) | Greater London Authority | [Open Government Licence v2.0](https://www.nationalarchives.gov.uk/doc/open-government-licence/version/2/) |
 
 © Environment Agency copyright and/or database right 2025. All rights reserved.
+
+Contains National Statistics data © Crown copyright and database right [2015].
+
+Contains Ordnance Survey data © Crown copyright and database right [2015].
 
 ## Licence
 
