@@ -3,8 +3,10 @@ from __future__ import annotations
 from pathlib import Path
 
 import pytest
+import shapely
 
 from data_test.config import FLOOD_SOURCES
+from data_test.coverage import Coverage, CoverageStatus, NoDataCheck, NoDataSquare
 from data_test.grid import GridBuild, build_grid, grid_path
 from data_test.measure import (
     Location,
@@ -13,6 +15,7 @@ from data_test.measure import (
     compare_with_shapes,
     expectation_met,
     format_nearest,
+    format_result,
     load_source_manifest,
     read_locations,
     run,
@@ -74,6 +77,19 @@ def test_format_nearest(bands: dict[str, float] | None, text: str) -> None:
     assert format_nearest(bands, 1000) == text
 
 
+@pytest.mark.parametrize(
+    ("status", "text"),
+    [
+        (CoverageStatus.OUTSIDE, "Not available here yet"),
+        (CoverageStatus.NO_DATA, "No data"),
+        (CoverageStatus.NEAR_GAP, "Low 50 m (may be incomplete)"),
+        (CoverageStatus.COVERED, "Low 50 m"),
+    ],
+)
+def test_format_result_never_lets_a_gap_look_safe(status: CoverageStatus, text: str) -> None:
+    assert format_result(status, {"Low": 50.0}, 1000) == text
+
+
 def test_comparison_collects_errors_and_mismatches() -> None:
     exact = {"A": {"High": 100.0, "Low": 50.0}, "B": {"Medium": 995.0}}
     grid = {"A": {"High": 103.0}, "B": {}}
@@ -102,6 +118,7 @@ def make_result(name: str, expectation: str, ms: float = 4.0) -> LocationResult:
         Location(name, 51.5, -0.1, expectation),
         True,
         {"rivers_and_sea": {"Low": 50.0}},
+        {"rivers_and_sea": CoverageStatus.COVERED},
         [ms],
     )
 
@@ -145,8 +162,35 @@ def test_full_run_from_download_to_report(tmp_path: Path) -> None:
     report = run(tmp_path, {"rivers_and_sea": [download]})
     assert "Largest distance error" in report and "| Fail |" not in report
     assert "Rivers and sea" in report
-    assert "| Oxford | Outside area | Outside test area | Outside test area | OK |" in report
+    assert (
+        "| Oxford | Outside area | Not available here yet | Not available here yet | OK |" in report
+    )
     assert "| Not built |" in report
+
+
+def test_report_flags_a_stale_no_data_list() -> None:
+    check = NoDataCheck(False, 100, 2, 100.0, 1.5, 20.0)
+    report = build_report(
+        {"surface_water": make_build()},
+        [make_result("Thamesmead", "near_river")],
+        {"surface_water": ([1.0], 0)},
+        1000,
+        {"surface_water": check},
+    )
+    assert "| Surface water No data list matches the grid | No | Yes | Fail |" in report
+    assert "2 of 100 squares are blank" in report
+
+
+def test_stale_no_data_list_fails_a_full_run(tmp_path: Path) -> None:
+    source = FLOOD_SOURCES["surface_water"]
+    download = write_flood_file(
+        tmp_path / "flood.gpkg", [("High", square(530_000, 180_000))], layer="RoFSW"
+    )
+    build_grid([download], source, grid_path(tmp_path, source, 5))
+    london = shapely.box(529_000, 179_000, 532_000, 182_000)
+    stale = Coverage(london, [NoDataSquare("surface_water", 530_000, 180_000, 1.0)])
+    report = run(tmp_path, {"surface_water": [download]}, coverage=stale)
+    assert "No data list matches the grid | No | Yes | Fail" in report
 
 
 def test_run_without_grids_explains_what_to_do(tmp_path: Path) -> None:

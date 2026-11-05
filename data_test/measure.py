@@ -21,11 +21,11 @@ from data_test.config import (
     DEFAULT_RADIUS_METRES,
     FLOOD_SOURCES,
     GRID_RESOLUTION_METRES,
-    LONDON_BBOX_BNG,
     TARGET_DISTANCE_ERROR_METRES,
     TARGET_GRID_MB,
     TARGET_LOOKUP_MS,
 )
+from data_test.coverage import Coverage, CoverageStatus, NoDataCheck, check_no_data_list
 from data_test.grid import (
     GridBuild,
     exact_nearest_by_band,
@@ -55,6 +55,7 @@ class LocationResult:
     in_area: bool
     # {source: {band: metres}}
     nearest: dict[str, dict[str, float]] = field(default_factory=dict)
+    statuses: dict[str, CoverageStatus] = field(default_factory=dict)
     lookup_ms: list[float] = field(default_factory=list)
 
     @property
@@ -82,11 +83,6 @@ def read_locations(path: Path = LOCATIONS_FILE) -> list[Location]:
             )
             for row in csv.DictReader(file)
         ]
-
-
-def in_test_area(x: float, y: float) -> bool:
-    min_x, min_y, max_x, max_y = LONDON_BBOX_BNG
-    return min_x <= x <= max_x and min_y <= y <= max_y
 
 
 def compare_with_shapes(
@@ -128,6 +124,16 @@ def format_nearest(bands: dict[str, float] | None, radius: float) -> str:
     return ", ".join(parts)
 
 
+def format_result(status: CoverageStatus, bands: dict[str, float] | None, radius: float) -> str:
+    """Describe a result, making sure a gap in the data can never read as safe."""
+    if status is CoverageStatus.OUTSIDE:
+        return "Not available here yet"
+    if status is CoverageStatus.NO_DATA:
+        return "No data"
+    text = format_nearest(bands, radius)
+    return f"{text} (may be incomplete)" if status is CoverageStatus.NEAR_GAP else text
+
+
 def verdict(passed: bool) -> str:
     return "Pass" if passed else "Fail"
 
@@ -137,6 +143,7 @@ def build_report(
     results: list[LocationResult],
     comparisons: dict[str, tuple[list[float], int]],
     radius: float,
+    no_data_checks: dict[str, NoDataCheck] | None = None,
 ) -> str:
     """Write the findings as Markdown."""
     timings = [ms for result in results for ms in result.lookup_ms]
@@ -145,6 +152,7 @@ def build_report(
     errors = [error for pair in comparisons.values() for error in pair[0]]
     mismatches = sum(pair[1] for pair in comparisons.values())
     worst_error = max(errors, default=0.0)
+    no_data_checks = no_data_checks or {}
 
     lines = [
         "# Flood data test",
@@ -168,6 +176,11 @@ def build_report(
         f"| Known places as expected | {passed} of {len(results)} | All, or explained "
         f"| {'Pass' if passed == len(results) else 'Review'} |",
     ]
+    for key, check in sorted(no_data_checks.items()):
+        lines.append(
+            f"| {FLOOD_SOURCES[key].label} No data list matches the grid "
+            f"| {'Yes' if check.matches else 'No'} | Yes | {verdict(check.matches)} |"
+        )
     for key, build in sorted(builds.items()):
         label = FLOOD_SOURCES[key].label
         lines += [
@@ -197,6 +210,18 @@ def build_report(
             *build.coverage,
             "```",
         ]
+        if key in no_data_checks:
+            check = no_data_checks[key]
+            share = check.no_data_km2 / check.london_km2 * 100
+            lines += [
+                "",
+                f"Inside the official London boundary, {check.blank_squares:,} of "
+                f"{check.london_squares:,} squares are blank and show No data. That's "
+                f"{check.no_data_km2:,.1f} km² of {check.london_km2:,.0f} km² ({share:.1f}%).",
+                "",
+                f"Within {radius:,.0f} m of a blank square or the edge of London, results are "
+                f"marked may be incomplete. That applies to {check.near_gap_km2:,.0f} km².",
+            ]
     lines += [
         "",
         "## Known places",
@@ -213,12 +238,12 @@ def build_report(
         expected = location.expectation.replace("_", " ").capitalize()
         cells = {}
         for key in FLOOD_SOURCES:
-            if not result.in_area:
-                cells[key] = "Outside test area"
-            elif key not in builds:
-                cells[key] = "Not built"
+            if key in result.statuses:
+                cells[key] = format_result(result.statuses[key], result.nearest.get(key), radius)
+            elif not result.in_area:
+                cells[key] = "Not available here yet"
             else:
-                cells[key] = format_nearest(result.nearest.get(key), radius)
+                cells[key] = "Not built"
         check = "OK" if result.check_passed else "Review"
         lines.append(
             f"| {location.name} | {expected} | {cells['rivers_and_sea']} "
@@ -250,11 +275,16 @@ def run(
     *,
     radius: float = DEFAULT_RADIUS_METRES,
     resolution: int = GRID_RESOLUTION_METRES,
+    coverage: Coverage | None = None,
 ) -> str:
     """Look up every known place in every built grid and return the report."""
+    coverage = coverage or Coverage.load()
     locations = read_locations()
     builds: dict[str, GridBuild] = {}
-    results = [LocationResult(location, in_test_area(*location.to_bng())) for location in locations]
+    no_data_checks: dict[str, NoDataCheck] = {}
+    results = [
+        LocationResult(location, coverage.in_london(*location.to_bng())) for location in locations
+    ]
     comparisons: dict[str, tuple[list[float], int]] = {}
 
     for key, source in FLOOD_SOURCES.items():
@@ -265,10 +295,13 @@ def run(
         grid_results: dict[str, dict[str, float]] = {}
         exact_results: dict[str, dict[str, float]] = {}
         with rasterio.open(path) as dataset:
+            if not source.fully_downloaded:
+                no_data_checks[key] = check_no_data_list(dataset, coverage, key, radius)
             for result in results:
-                if not result.in_area:
-                    continue
                 x, y = result.location.to_bng()
+                result.statuses[key] = coverage.status(source, x, y, radius)
+                if result.statuses[key] in (CoverageStatus.OUTSIDE, CoverageStatus.NO_DATA):
+                    continue
                 started = perf_counter()
                 nearest = nearest_by_band(dataset, x, y, radius)
                 result.lookup_ms.append((perf_counter() - started) * 1_000)
@@ -289,7 +322,7 @@ def run(
 
     if not builds:
         raise FileNotFoundError("No grid files found. Run the build command first.")
-    return build_report(builds, results, comparisons, radius)
+    return build_report(builds, results, comparisons, radius, no_data_checks)
 
 
 def load_source_manifest(path: Path) -> dict[str, list[Path]]:

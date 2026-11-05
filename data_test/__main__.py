@@ -9,8 +9,9 @@ import warnings
 from pathlib import Path
 
 import pyogrio
+import rasterio
 
-from data_test import grid, measure, sources
+from data_test import coverage, grid, measure, sources
 from data_test.config import DEFAULT_RADIUS_METRES, FLOOD_SOURCES, GRID_RESOLUTION_METRES
 
 GRID_DIR = Path("grids")
@@ -37,6 +38,10 @@ def build_parser() -> argparse.ArgumentParser:
     measure_command = commands.add_parser("measure", help="Check the grids and write a report")
     measure_command.add_argument("--radius-metres", type=float, default=DEFAULT_RADIUS_METRES)
     measure_command.add_argument("--resolution-metres", type=int, default=GRID_RESOLUTION_METRES)
+    coverage_command = commands.add_parser(
+        "coverage", help="List the blank squares inside London that should show No data"
+    )
+    coverage_command.add_argument("--resolution-metres", type=int, default=GRID_RESOLUTION_METRES)
     return parser
 
 
@@ -84,9 +89,31 @@ def run_measure(args: argparse.Namespace) -> int:
     return 0
 
 
+def run_coverage(args: argparse.Namespace) -> int:
+    boundary = coverage.load_boundary()
+    squares: list[coverage.NoDataSquare] = []
+    for source in FLOOD_SOURCES.values():
+        path = grid.grid_path(GRID_DIR, source, args.resolution_metres)
+        if source.fully_downloaded or not path.exists():
+            continue
+        with rasterio.open(path) as dataset:
+            found = coverage.find_no_data_squares(dataset, boundary, source.key)
+        squares += found
+        km2 = sum(square.km2_inside_london for square in found)
+        print(f"{source.label}: {len(found)} blank squares, {km2:,.1f} km² inside London")
+    coverage.write_no_data_squares(squares)
+    print(f"Saved to {coverage.NO_DATA_FILE}")
+    return 0
+
+
 def main(argv: list[str] | None = None) -> int:
     args = build_parser().parse_args(argv)
-    handlers = {"inspect": run_inspect, "build": run_build, "measure": run_measure}
+    handlers = {
+        "inspect": run_inspect,
+        "build": run_build,
+        "measure": run_measure,
+        "coverage": run_coverage,
+    }
     try:
         return handlers[args.command](args)
     except (
