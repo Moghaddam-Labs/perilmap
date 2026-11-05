@@ -9,6 +9,7 @@ from perilmap.core.models import (
     DISCLAIMER,
     AreaComparison,
     DataSource,
+    Link,
     Location,
     NearestZones,
     ResultError,
@@ -104,21 +105,29 @@ def test_sources_must_state_freshness_resolution_and_credit(field: str) -> None:
     assert isinstance(FAKE_SOURCE, DataSource)
 
 
+def test_links_must_use_https_and_have_a_label() -> None:
+    assert Link("Read more", "https://example.com").url
+    with pytest.raises(ResultError, match="https"):
+        Link("Read more", "http://example.com")
+    with pytest.raises(ResultError, match="label"):
+        Link(" ", "https://example.com")
+
+
 def test_a_distance_cannot_be_negative() -> None:
     with pytest.raises(ResultError, match="negative"):
-        ZoneDistance("High", -1)
+        ZoneDistance("High", -1, "Label")
 
 
 def test_none_means_no_zone_found_and_zero_means_on_a_zone() -> None:
-    assert ZoneDistance("Low", None).metres is None
-    assert ZoneDistance("Low", 0).metres == 0
+    assert ZoneDistance("Low", None, "None within 1,000 m").metres is None
+    assert ZoneDistance("Low", 0, "On the zone").metres == 0
 
 
 def test_nearest_zones_must_list_bands_and_a_radius() -> None:
     with pytest.raises(ResultError, match="every band"):
         NearestZones((), 1_000)
     with pytest.raises(ResultError, match="radius"):
-        NearestZones((ZoneDistance("Low", 5),), 0)
+        NearestZones((ZoneDistance("Low", 5, "Label"),), 0)
 
 
 def test_comparison_value_must_sit_inside_its_range() -> None:

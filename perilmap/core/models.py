@@ -64,15 +64,30 @@ class DataSource:
 
 
 @dataclass(frozen=True)
+class Link:
+    """A page where someone can read more or take the next step."""
+
+    label: str
+    url: str
+
+    def __post_init__(self) -> None:
+        if not self.label.strip():
+            raise ResultError("A link needs a label.")
+        if not self.url.startswith("https://"):
+            raise ResultError("A link must use https.")
+
+
+@dataclass(frozen=True)
 class ZoneDistance:
     """How far away a risk zone is. Zero means on the zone, and None means none was found."""
 
     band: str
     metres: float | None
+    label: str
 
     def __post_init__(self) -> None:
-        if not self.band.strip():
-            raise ResultError("A zone distance needs a band.")
+        if not self.band.strip() or not self.label.strip():
+            raise ResultError("A zone distance needs a band and a label.")
         if self.metres is not None and self.metres < 0:
             raise ResultError("A distance can't be negative.")
 
@@ -128,6 +143,7 @@ class PerilResult:
     sources: tuple[DataSource, ...] = ()
     measurement: Measurement | None = None
     caveats: tuple[str, ...] = ()
+    links: tuple[Link, ...] = ()
 
     def __post_init__(self) -> None:
         for name in ("peril_id", "title", "summary", "what_this_means", "how_sure"):

@@ -9,18 +9,17 @@ import pytest
 import shapely
 from pyogrio.raw import write
 
-from data_test.heat import (
-    EXPLANATION,
+from data_test.heat import build_heat_file, format_heat
+from perilmap.regions.london.heat import (
     GROUPS,
-    SOURCE_DESCRIPTION,
     HeatFileError,
     HeatLookup,
     HeatResult,
-    build_heat_file,
-    format_heat,
     group_for,
     read_build,
 )
+from perilmap.regions.london.wording import HEAT_DESCRIPTION as SOURCE_DESCRIPTION
+from perilmap.regions.london.wording import HEAT_EXPLANATION as EXPLANATION
 from tests.helpers import write_heat_source
 
 BREAKS = [17.9, 18.0, 18.1, 18.2]

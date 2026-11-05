@@ -26,7 +26,6 @@ from data_test.config import (
     TARGET_HEAT_FILE_MB,
     TARGET_LOOKUP_MS,
 )
-from data_test.coverage import Coverage, CoverageStatus, NoDataCheck, check_no_data_list
 from data_test.grid import (
     GridBuild,
     exact_nearest_by_band,
@@ -34,15 +33,18 @@ from data_test.grid import (
     nearest_by_band,
     read_build,
 )
-from data_test.heat import (
-    EXPLANATION,
-    OUTPUT_FIELDS,
-    OWN_CALCULATION_NOTE,
-    SOURCE_CREDIT,
-    SOURCE_DESCRIPTION,
-    HeatBuild,
-    HeatLookup,
-    format_heat,
+from data_test.heat import format_heat
+from perilmap.regions.london.coverage import (
+    Coverage,
+    CoverageStatus,
+    NoDataCheck,
+    check_no_data_list,
+)
+from perilmap.regions.london.heat import OUTPUT_FIELDS, HeatBuild, HeatLookup
+from perilmap.regions.london.wording import (
+    HEAT_CALCULATION_NOTE,
+    HEAT_DESCRIPTION,
+    HEAT_EXPLANATION,
 )
 
 LOCATIONS_FILE = Path(__file__).with_name("locations.csv")
@@ -245,14 +247,14 @@ def build_report(
             "",
             "## Heat",
             "",
-            f"- What the number is: {SOURCE_DESCRIPTION} ({SOURCE_CREDIT}).",
+            f"- What the number is: {HEAT_DESCRIPTION} (Greater London Authority and Arup).",
             f"- Fields kept: {', '.join(OUTPUT_FIELDS)}, plus the area's shape.",
             f"- Areas: {heat_build.areas:,}, covering {heat_build.km2:,.0f} km². The rest of "
             "London is mainly the River Thames, and shows No data.",
             f"- London's range: {heat_build.min_c:.1f} to {heat_build.max_c:.1f} °C. "
-            f"{OWN_CALCULATION_NOTE}",
+            f"{HEAT_CALCULATION_NOTE}",
             "",
-            f"Shown beside each result: {EXPLANATION}",
+            f"Shown beside each result: {HEAT_EXPLANATION}",
         ]
     lines += [
         "",

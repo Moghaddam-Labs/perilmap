@@ -6,7 +6,6 @@ import pytest
 import shapely
 
 from data_test.config import FLOOD_SOURCES
-from data_test.coverage import Coverage, CoverageStatus, NoDataCheck, NoDataSquare
 from data_test.grid import GridBuild, build_grid, grid_path
 from data_test.heat import build_heat_file
 from data_test.measure import (
@@ -21,6 +20,7 @@ from data_test.measure import (
     read_locations,
     run,
 )
+from perilmap.regions.london.coverage import Coverage, CoverageStatus, NoDataCheck, NoDataSquare
 from tests.helpers import square, write_flood_file, write_heat_source
 
 

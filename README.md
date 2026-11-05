@@ -25,6 +25,8 @@ Groundwater and reservoir flooding won't be covered at launch, and the app will 
 
 - `perilmap/core`: the region-agnostic core. It finds the region for a location and gathers a result
   from each peril. It knows nothing about any real place, and a test enforces that.
+- `perilmap/regions/london`: the London plug-in. It reads the flood and heat files and supplies each
+  result's wording, sources and links. The wording all sits in `wording.py`, so it's easy to review.
 - `data_test`: builds and checks the flood and heat data.
 
 Adding a region or peril means writing a plug-in, not changing the core. Each plug-in returns a result
@@ -69,11 +71,11 @@ python -m data_test heat data/GLA_ClimateRiskVariables.gdb
 python -m data_test measure
 ```
 
-The grid files go in `grids/`, and the report goes in `reports/flood-data-test.md`. Each build prints
+The grid and heat files go in `grids/`, and the report goes in `reports/flood-data-test.md`. Each build prints
 a coverage map, so you can spot any part of London that was missed.
 
 The `coverage` command checks surface water against the official London boundary and updates
-`data_test/reference/no_data_squares.csv`. Those squares show No data, because the files can't prove
+`perilmap/regions/london/reference/no_data_squares.csv`. Those squares show No data, because the files can't prove
 whether they were downloaded. `measure` fails if that list no longer matches the grid.
 
 | Where the pin is | Result shown |

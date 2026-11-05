@@ -11,11 +11,13 @@ from pathlib import Path
 import pyogrio
 import rasterio
 
-from data_test import coverage, grid, heat, measure, sources
+from data_test import grid, heat, measure, sources
 from data_test.config import DEFAULT_RADIUS_METRES, FLOOD_SOURCES, GRID_RESOLUTION_METRES
+from perilmap.regions.london import coverage
+from perilmap.regions.london.heat import HEAT_FILENAME
 
 GRID_DIR = Path("grids")
-HEAT_PATH = Path("built/heat_air_temperature.gpkg")
+HEAT_PATH = GRID_DIR / HEAT_FILENAME
 MANIFEST_PATH = GRID_DIR / "sources.json"
 REPORT_PATH = Path("reports/flood-data-test.md")
 
