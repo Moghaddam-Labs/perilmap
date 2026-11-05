@@ -8,6 +8,8 @@ All notable changes to PerilMap are recorded here. The format follows
 
 ### Added
 
+- London plug-in, with flood distances, the heat comparison and the subsidence explainer, each with
+  plain-English wording, guidance links and credited sources.
 - Backend core and plug-in setup, with rules that make every result explain itself, credit its
   sources and keep gaps in the data from looking safe.
 - Heat data: a small file of modelled average summer air temperature for London's neighbourhoods,

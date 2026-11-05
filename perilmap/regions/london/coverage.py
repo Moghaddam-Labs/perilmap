@@ -12,7 +12,7 @@ import rasterio
 import shapely
 from pyogrio.raw import read
 
-from data_test.config import COVERAGE_SQUARE_METRES, FloodSource
+from perilmap.regions.london.settings import COVERAGE_SQUARE_METRES, FloodSource
 
 REFERENCE_DIR = Path(__file__).with_name("reference")
 BOUNDARY_FILE = REFERENCE_DIR / "london_boundary.geojson"

@@ -36,7 +36,7 @@ def make_result(peril_id: str = "lava", **overrides: object) -> PerilResult:
         "how_sure": "Mapped at 10 m, for an area of land rather than one home.",
         "what_you_can_do": ("Read the local lava plan.",),
         "sources": (FAKE_SOURCE,),
-        "measurement": NearestZones((ZoneDistance("High", 120.0),), 1_000),
+        "measurement": NearestZones((ZoneDistance("High", 120.0, "About 120 m"),), 1_000),
     }
     return PerilResult(**{**values, **overrides})
 

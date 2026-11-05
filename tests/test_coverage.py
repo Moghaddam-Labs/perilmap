@@ -9,7 +9,7 @@ import shapely
 from rasterio.transform import from_origin
 
 from data_test.config import DEFAULT_RADIUS_METRES, FLOOD_SOURCES, LONDON_BBOX_BNG
-from data_test.coverage import (
+from perilmap.regions.london.coverage import (
     Coverage,
     CoverageStatus,
     NoDataSquare,

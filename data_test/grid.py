@@ -18,11 +18,9 @@ import rasterio
 import shapely
 from rasterio.features import rasterize
 from rasterio.transform import from_origin
-from rasterio.windows import Window
 
 from data_test.config import (
     BAND_BITS,
-    BAND_ORDER,
     BNG_CRS,
     COVERAGE_BLOCK_METRES,
     DEFAULT_RADIUS_METRES,
@@ -31,8 +29,22 @@ from data_test.config import (
     FloodSource,
 )
 from data_test.sources import iter_batches
+from perilmap.regions.london.grids import nearest_by_band
+from perilmap.regions.london.settings import grid_filename
 
 Bbox = tuple[int, int, int, int]
+__all__ = [
+    "ATTRIBUTION",
+    "Bbox",
+    "GridBuild",
+    "build_grid",
+    "coverage_map",
+    "exact_nearest_by_band",
+    "grid_path",
+    "nearest_by_band",
+    "read_build",
+    "stats_path",
+]
 ATTRIBUTION = "© Environment Agency copyright and/or database right 2025. All rights reserved."
 
 
@@ -53,7 +65,7 @@ class GridBuild:
 
 
 def grid_path(grid_dir: Path, source: FloodSource, resolution: int) -> Path:
-    return grid_dir / f"{source.key}_{resolution}m.tif"
+    return grid_dir / grid_filename(source, resolution)
 
 
 def stats_path(path: Path) -> Path:
@@ -187,38 +199,6 @@ def build_grid(
 
 def read_build(output: Path) -> GridBuild:
     return GridBuild(**json.loads(stats_path(output).read_text(encoding="utf-8")))
-
-
-def nearest_by_band(
-    dataset: rasterio.DatasetReader,
-    x: float,
-    y: float,
-    radius: float = DEFAULT_RADIUS_METRES,
-) -> dict[str, float]:
-    """Find the distance from a point to the nearest cell of each band within the radius."""
-    resolution = dataset.transform.a
-    left, top = dataset.bounds.left, dataset.bounds.top
-    reach = int(radius // resolution) + 1
-    column, row = int((x - left) // resolution), int((top - y) // resolution)
-    window = Window(column - reach, row - reach, 2 * reach + 1, 2 * reach + 1)
-    try:
-        window = window.intersection(Window(0, 0, dataset.width, dataset.height))
-    except rasterio.errors.WindowError:
-        return {}
-    cells = dataset.read(1, window=window)
-    rows, columns = np.indices(cells.shape)
-    centre_x = left + (columns + window.col_off + 0.5) * resolution
-    centre_y = top - (rows + window.row_off + 0.5) * resolution
-    # Distance to each cell's edge, so a point inside a cell is exactly 0 from it.
-    gap_x = np.maximum(np.abs(centre_x - x) - resolution / 2, 0)
-    gap_y = np.maximum(np.abs(centre_y - y) - resolution / 2, 0)
-    distances = np.hypot(gap_x, gap_y)
-    nearest = {}
-    for band in BAND_ORDER:
-        matches = distances[(cells & BAND_BITS[band]) > 0]
-        if matches.size and matches.min() <= radius:
-            nearest[band] = float(matches.min())
-    return nearest
 
 
 def exact_nearest_by_band(
