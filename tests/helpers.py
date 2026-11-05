@@ -34,3 +34,28 @@ def write_flood_file(
         crs=crs,
     )
     return path
+
+
+def write_heat_source(path: Path, rows: list[tuple[str, float, object]]) -> Path:
+    """Write a file shaped like the GLA source, including a social column to be left out."""
+    write(
+        path,
+        np.array([shapely.to_wkb(shape) for _, _, shape in rows], dtype=object),
+        [
+            np.array([borough for borough, _, _ in rows], dtype=object),
+            np.array([temperature for _, temperature, _ in rows], dtype="float64"),
+            np.array([12.5 for _ in rows], dtype="float64"),
+            np.array([30.0 for _ in rows], dtype="float64"),
+        ],
+        fields=[
+            "VulnMetrics_Project_Neighborhood",
+            "AMS_ARUP_UHeatSummers2018_2022_OverallMeans_LSOABFE_Ply_T2",
+            "VulnMetrics_Project_IncomeDeprivation",
+            "pBAME__csv_pBAME",
+        ],
+        layer="airsurfacetemp",
+        driver="GPKG",
+        geometry_type="Polygon",
+        crs="EPSG:27700",
+    )
+    return path

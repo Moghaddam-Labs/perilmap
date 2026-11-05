@@ -13,6 +13,7 @@ __pycache__/
 # Downloaded flood data and built grids stay out of the repo
 data/
 grids/
+built/
 reports/
 *.gdb/
 *.gpkg

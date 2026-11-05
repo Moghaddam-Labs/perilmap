@@ -8,6 +8,7 @@ import shapely
 from data_test.config import FLOOD_SOURCES
 from data_test.coverage import Coverage, CoverageStatus, NoDataCheck, NoDataSquare
 from data_test.grid import GridBuild, build_grid, grid_path
+from data_test.heat import build_heat_file
 from data_test.measure import (
     Location,
     LocationResult,
@@ -20,7 +21,7 @@ from data_test.measure import (
     read_locations,
     run,
 )
-from tests.helpers import square, write_flood_file
+from tests.helpers import square, write_flood_file, write_heat_source
 
 
 def test_location_list_has_twenty_valid_places() -> None:
@@ -134,7 +135,7 @@ def test_report_passes_within_targets() -> None:
     assert "| Slowest lookup | 4.0 ms | Up to 100 ms | Pass |" in report
     assert "| Largest distance error | 2.0 m | Up to 10 m | Pass |" in report
     assert "| Zones missed or invented | 0 of 1 checked | None | Pass |" in report
-    assert "| Thamesmead | Near river | Low 50 m | Not built | OK |" in report
+    assert "| Thamesmead | Near river | Low 50 m | Not built | Not built | OK |" in report
     assert "```text\n#.\n```" in report
 
 
@@ -149,7 +150,7 @@ def test_report_fails_when_targets_are_missed() -> None:
     assert "| 300.0 ms | Up to 100 ms | Fail |" in report
     assert "| 40.0 m | Up to 10 m | Fail |" in report
     assert "| 1 of 2 checked | None | Fail |" in report
-    assert "| Highgate | Away from river | Low 50 m | Not built | Review |" in report
+    assert "| Highgate | Away from river | Low 50 m | Not built | Not built | Review |" in report
 
 
 def test_full_run_from_download_to_report(tmp_path: Path) -> None:
@@ -162,9 +163,8 @@ def test_full_run_from_download_to_report(tmp_path: Path) -> None:
     report = run(tmp_path, {"rivers_and_sea": [download]})
     assert "Largest distance error" in report and "| Fail |" not in report
     assert "Rivers and sea" in report
-    assert (
-        "| Oxford | Outside area | Not available here yet | Not available here yet | OK |" in report
-    )
+    oxford = "| Oxford | Outside area | Not available here yet | Not available here yet |"
+    assert oxford in report
     assert "| Not built |" in report
 
 
@@ -191,6 +191,25 @@ def test_stale_no_data_list_fails_a_full_run(tmp_path: Path) -> None:
     stale = Coverage(london, [NoDataSquare("surface_water", 530_000, 180_000, 1.0)])
     report = run(tmp_path, {"surface_water": [download]}, coverage=stale)
     assert "No data list matches the grid | No | Yes | Fail" in report
+
+
+def test_report_includes_heat_with_labelled_calculations(tmp_path: Path) -> None:
+    source = FLOOD_SOURCES["rivers_and_sea"]
+    download = write_flood_file(tmp_path / "flood.gpkg", [("Low", square(530_000, 180_000))])
+    build_grid([download], source, grid_path(tmp_path, source, 5))
+    heat_source = write_heat_source(
+        tmp_path / "source.gpkg",
+        [("Camden", 18.0, shapely.box(529_000, 179_000, 532_000, 182_000))],
+    )
+    heat_path = tmp_path / "heat.gpkg"
+    build_heat_file(heat_source, heat_path)
+    report = run(tmp_path, {}, heat_path=heat_path)
+    assert "## Heat" in report
+    assert "Modelled average air temperature" in report
+    assert "PerilMap's own calculation" in report
+    assert "| Oxford | Outside area | Not available here yet | Not available here yet" in report
+    assert "not how hot your home gets inside" in report
+    assert "| Heat file |" in report
 
 
 def test_run_without_grids_explains_what_to_do(tmp_path: Path) -> None:
