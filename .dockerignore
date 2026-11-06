@@ -1,0 +1,8 @@
+*
+!requirements.api.lock
+!perilmap/
+!grids/
+**/__pycache__
+**/*.pyc
+grids/*.json
+!grids/heat_air_temperature.json

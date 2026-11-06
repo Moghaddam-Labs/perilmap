@@ -27,3 +27,17 @@ jobs:
       - run: ruff check .
       - run: ruff format --check .
       - run: pytest --strict-markers -ra
+
+  image:
+    # The real data files aren't in the repo, so this proves the image builds and its code imports.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - run: mkdir -p grids && touch grids/placeholder
+      - run: docker build -t perilmap-api .
+      - run: docker run --rm perilmap-api python -c "import perilmap.api.app, perilmap.regions.london.region"
+      - name: Refuse to start without data
+        run: |
+          if docker run --rm perilmap-api python -c "import perilmap.api.main as m; m.build_registry()"; then
+            exit 1
+          fi

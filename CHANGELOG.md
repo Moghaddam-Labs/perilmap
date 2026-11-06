@@ -8,6 +8,8 @@ All notable changes to PerilMap are recorded here. The format follows
 
 ### Added
 
+- Deployment setup for Google Cloud Run: a Dockerfile, production-only dependencies, deploy and check
+  scripts, a guide, and a CI check that the image builds.
 - Web API for assessments and postcode lookups, with rate limiting, security headers and protections
   that keep locations out of logs, web addresses and error replies.
 - London plug-in, with flood distances, the heat comparison and the subsidence explainer, each with
