@@ -1,5 +1,5 @@
 import { BandKey } from "@/components/BandKey";
-import { HomeHero } from "@/components/HomeHero";
+import { LocationFinder } from "@/components/LocationFinder";
 import { PerilIcon } from "@/components/PerilIcon";
 import { StatusBadge } from "@/components/StatusBadge";
 import styles from "./page.module.css";
@@ -40,7 +40,7 @@ const GAPS = [
 export default function HomePage() {
   return (
     <main id="main">
-      <HomeHero search={<p className={styles.searchSoon}>Postcode search is on its way</p>} />
+      <LocationFinder />
 
       <div className={styles.content}>
         <section aria-labelledby="what-it-looks-at">

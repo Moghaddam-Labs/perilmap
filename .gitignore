@@ -26,6 +26,7 @@ next-env.d.ts
 *.tsbuildinfo
 web/playwright-report/
 web/test-results/
+web/public/vendor/
 
 # macOS
 .DS_Store

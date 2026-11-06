@@ -2,7 +2,8 @@
   --focus: var(--hero-focus);
   position: relative;
   margin: 0 var(--space-3) var(--space-3);
-  overflow: hidden;
+  /* clip, not hidden: a hidden box can still be scrolled sideways when the search box takes focus */
+  overflow: clip;
   border-radius: var(--radius-feature);
   background: var(--brand-deep);
   color: var(--hero-ink);

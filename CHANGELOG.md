@@ -18,6 +18,10 @@ All notable changes to PerilMap are recorded here. The format follows
 
 ### Added
 
+- Postcode search on the home page, using the API, with clear messages for every kind of problem.
+- A map to put a pin on the home, which can be moved by clicking, dragging or the arrow keys, and
+  says in words where the pin is. It shows the edge of Greater London, and still lets people carry
+  on if the map can't load.
 - Icons for each peril, ready for the result cards, with a neutral icon for future plug-ins.
 - Website foundation in `web/`: Next.js, a design system with accessible flood level patterns and
   status labels, light and dark themes, strict security headers, API types generated from the API's

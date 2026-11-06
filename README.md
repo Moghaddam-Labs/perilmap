@@ -91,7 +91,25 @@ npm run dev
 ```
 
 Open `http://localhost:3000`, and see every colour and component at `http://localhost:3000/design`.
-To use your own copy of the API, copy `web/.env.example` to `web/.env.local` and follow its notes.
+
+The live API only answers requests from the live website. To try postcode search and the map on your
+computer, run the API locally in another terminal window, from the repo root:
+
+```bash
+PERILMAP_ALLOWED_ORIGINS=http://localhost:3000 uvicorn perilmap.api.main:app --no-access-log --port 8000
+```
+
+Then create `web/.env.local` with this line, and restart `npm run dev`:
+
+```bash
+NEXT_PUBLIC_PERILMAP_API_URL=http://127.0.0.1:8000
+```
+
+The map comes from [OpenFreeMap](https://openfreemap.org/), which is free and needs no account. Its
+worker file is copied into `web/public/vendor/` each time the site starts or builds.
+
+The website draws London's boundary from a small copy made by `scripts/export_london_boundary.py`.
+Run it again only if the boundary in `perilmap/regions/london/reference/` changes.
 
 The site follows WCAG 2.2 AA. Flood levels always have a name and a pattern as well as a colour, and
 coral is only ever a brand accent, so it never signals risk. A test checks every colour pair in

@@ -48,6 +48,8 @@ const PAIRS: [foreground: string, background: string, minimum: number][] = [
   ["hero-ink", "brand-deep", TEXT],
   ["hero-ink-soft", "brand-deep", TEXT],
   ["hero-focus", "brand-deep", INTERFACE],
+  ["hero-error", "brand-deep", TEXT],
+  ["brand-deep", "brand-coral", TEXT],
   ["brand-coral", "brand-deep", INTERFACE],
   ["footer-ink", "footer-tone-a", TEXT],
   ["footer-ink", "footer-tone-b", TEXT],
