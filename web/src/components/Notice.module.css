@@ -1,0 +1,14 @@
+.notice {
+  max-width: var(--measure);
+  padding: var(--space-3) var(--space-4);
+  border-inline-start: 4px solid var(--control-edge);
+  background: var(--surface);
+}
+
+.error {
+  border-inline-start-color: var(--error);
+}
+
+.title {
+  font-weight: 700;
+}

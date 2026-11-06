@@ -1,0 +1,20 @@
+.mark {
+  width: 1.75rem;
+  height: 1.75rem;
+  flex: none;
+}
+
+.ring {
+  fill: none;
+  stroke: var(--brand-coral);
+  stroke-width: 2;
+  stroke-dasharray: 3.6 3.73;
+}
+
+.pin {
+  fill: currentColor;
+}
+
+.hole {
+  fill: var(--mark-hole, var(--brand-maroon));
+}

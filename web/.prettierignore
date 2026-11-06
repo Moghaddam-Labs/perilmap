@@ -1,0 +1,6 @@
+.next
+node_modules
+playwright-report
+test-results
+next-env.d.ts
+src/lib/api/openapi.json

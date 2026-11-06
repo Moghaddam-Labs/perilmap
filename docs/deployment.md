@@ -66,11 +66,11 @@ The app's own error messages and Cloud Run's traffic charts still work.
 ## Keep image storage small
 
 The free allowance for stored images is 0.5 GB, and each deployment adds an image. Keep only the two
-newest:
+newest. Without `--no-dry-run`, Google only reports what the policy would do and deletes nothing:
 
 ```bash
 gcloud artifacts repositories set-cleanup-policies cloud-run-source-deploy \
-  --location=europe-west2 --policy=scripts/image-cleanup-policy.json
+  --location=europe-west2 --policy=scripts/image-cleanup-policy.json --no-dry-run
 ```
 
 ## Updating the data

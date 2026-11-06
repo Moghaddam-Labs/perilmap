@@ -1,0 +1,81 @@
+/*
+ * PerilMap's design tokens. tests/unit/contrast.test.ts checks every text and interface colour pair
+ * in light and dark, so a change here that drops below WCAG AA fails the tests.
+ */
+
+:root {
+  color-scheme: light dark;
+
+  /* Brand. Coral is an accent, never used to signal a level of risk. */
+  --brand-maroon: #2f1218;
+  --brand-coral: #ff7f6e;
+  --brand-blush: #f6dcd8;
+
+  /* Surfaces and text */
+  --paper: #f3f6f7;
+  --surface: #ffffff;
+  --ink: #2f1218;
+  --ink-soft: #5e464b;
+  --line: #c9d2d6;
+  --control-edge: #6f5a5f;
+
+  /* Interactive */
+  --link: #a12c17;
+  --focus: #a12c17;
+  --error: #a3201a;
+
+  /* The hero stays maroon in both themes */
+  --hero-ink: #ffffff;
+  --hero-ink-soft: #f6dcd8;
+  --hero-focus: #ff7f6e;
+
+  /* Flood levels: one blue family from pale to deep, the same in both themes so they match the map */
+  --band-high-fill: #0a3a66;
+  --band-high-mark: #ffffff;
+  --band-medium-fill: #1f6fa8;
+  --band-medium-mark: #ffffff;
+  --band-low-fill: #8cc4e4;
+  --band-low-mark: #0a3a66;
+  --band-very-low-fill: #dcedf7;
+  --band-very-low-mark: #1f5a8a;
+  --band-other-fill: #e4e2e0;
+  --band-other-mark: #4b4645;
+
+  /* Type: a 4:3 scale from a 17px base */
+  --font: "Atkinson Hyperlegible Next Variable", system-ui, sans-serif;
+  --text-sm: 0.9375rem;
+  --text-md: 1.0625rem;
+  --text-lg: 1.4167rem;
+  --text-xl: 1.8889rem;
+  --text-2xl: clamp(2.25rem, 1.6rem + 3vw, 3.5rem);
+
+  /* Spacing */
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.5rem;
+  --space-6: 2.5rem;
+  --space-7: 4rem;
+  --space-8: 6rem;
+
+  --measure: 38rem;
+  --page: 72rem;
+  --gutter: clamp(1rem, 4vw, 2.5rem);
+  --radius: 0.25rem;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --paper: #1f0c10;
+    --surface: #2c151a;
+    --ink: #fbeeeb;
+    --ink-soft: #dcc4bf;
+    --line: #573a40;
+    --control-edge: #b0959a;
+
+    --link: #ff9f92;
+    --focus: #ff9f92;
+    --error: #ffb4a8;
+  }
+}

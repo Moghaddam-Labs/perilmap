@@ -19,5 +19,13 @@ reports/
 *.gpkg-*
 *.zip
 
+# Website
+node_modules/
+.next/
+next-env.d.ts
+*.tsbuildinfo
+web/playwright-report/
+web/test-results/
+
 # macOS
 .DS_Store

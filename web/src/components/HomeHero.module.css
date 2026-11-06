@@ -1,0 +1,97 @@
+.hero {
+  --focus: var(--hero-focus);
+  position: relative;
+  overflow: hidden;
+  background: var(--brand-maroon);
+  color: var(--hero-ink);
+}
+
+.inner {
+  position: relative;
+  max-width: var(--page);
+  margin-inline: auto;
+  padding: var(--space-5) var(--gutter) var(--space-8);
+}
+
+.wordmark {
+  --mark-hole: var(--brand-maroon);
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-block-end: var(--space-7);
+  font-size: var(--text-lg);
+  font-weight: 750;
+  letter-spacing: -0.01em;
+}
+
+.title {
+  max-width: 13em;
+  font-size: var(--text-2xl);
+  font-weight: 800;
+  line-height: 1.05;
+  letter-spacing: -0.025em;
+}
+
+.lead {
+  max-width: 30rem;
+  margin-block-start: var(--space-5);
+  color: var(--hero-ink-soft);
+  font-size: 1.1875rem;
+}
+
+.map {
+  position: absolute;
+  inset-block-start: 50%;
+  inset-inline-end: -6rem;
+  width: min(62rem, 75vw);
+  transform: translateY(-50%);
+  mask-image: linear-gradient(90deg, transparent 22%, #000 48%);
+}
+
+.map img {
+  width: 100%;
+  height: auto;
+}
+
+.pin {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.circle {
+  fill: #fff;
+  fill-opacity: 0.06;
+  stroke: #fff;
+  stroke-opacity: 0.55;
+  stroke-width: 2;
+  stroke-dasharray: 8 8;
+}
+
+.line {
+  stroke: #fff;
+  stroke-width: 3;
+}
+
+.white {
+  fill: #fff;
+}
+
+.hole {
+  fill: var(--brand-maroon);
+}
+
+@media (max-width: 56rem) {
+  .inner {
+    padding-block-end: 15rem;
+  }
+
+  .map {
+    inset-block: auto -2rem;
+    inset-inline: -40% -30%;
+    width: auto;
+    transform: none;
+    mask-image: linear-gradient(180deg, transparent 0, #000 30%);
+  }
+}

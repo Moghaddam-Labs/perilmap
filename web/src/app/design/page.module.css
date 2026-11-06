@@ -1,0 +1,104 @@
+.main {
+  display: grid;
+  gap: var(--space-6);
+  max-width: var(--page);
+  margin-inline: auto;
+  padding: var(--space-6) var(--gutter);
+}
+
+.main h1 {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  font-size: var(--text-xl);
+  --mark-hole: var(--paper);
+}
+
+.main h2 {
+  margin-block-end: var(--space-4);
+  padding-block-start: var(--space-4);
+  border-top: 1px solid var(--line);
+  font-size: var(--text-lg);
+}
+
+.display {
+  font-size: var(--text-2xl);
+  font-weight: 800;
+  line-height: 1.05;
+  letter-spacing: -0.025em;
+  margin-block-end: var(--space-4);
+}
+
+.body {
+  max-width: var(--measure);
+  margin-block-start: var(--space-2);
+}
+
+.colours {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(8rem, 1fr));
+  gap: var(--space-3);
+  padding: 0;
+  list-style: none;
+  font-size: var(--text-sm);
+}
+
+.colour {
+  display: block;
+  height: 3rem;
+  margin-block-end: var(--space-1);
+  border: 1px solid var(--ink);
+}
+
+.colour-paper {
+  background: var(--paper);
+}
+.colour-surface {
+  background: var(--surface);
+}
+.colour-ink {
+  background: var(--ink);
+}
+.colour-ink-soft {
+  background: var(--ink-soft);
+}
+.colour-line {
+  background: var(--line);
+}
+.colour-control-edge {
+  background: var(--control-edge);
+}
+.colour-link {
+  background: var(--link);
+}
+.colour-error {
+  background: var(--error);
+}
+.colour-brand-maroon {
+  background: var(--brand-maroon);
+}
+.colour-brand-coral {
+  background: var(--brand-coral);
+}
+
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3);
+  margin-block-start: var(--space-3);
+}
+
+.statuses {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  padding: 0;
+  list-style: none;
+}
+
+.controls,
+.notices {
+  display: grid;
+  gap: var(--space-4);
+}

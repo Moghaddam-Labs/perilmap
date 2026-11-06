@@ -1,0 +1,45 @@
+.swatch {
+  width: 2rem;
+  height: 2rem;
+  flex: none;
+  border: 1px solid var(--ink);
+}
+
+.fill {
+  fill: var(--band-fill);
+}
+
+.lines {
+  fill: none;
+  stroke: var(--band-mark);
+  stroke-width: 1.6;
+}
+
+.dots {
+  fill: var(--band-mark);
+}
+
+.high {
+  --band-fill: var(--band-high-fill);
+  --band-mark: var(--band-high-mark);
+}
+
+.medium {
+  --band-fill: var(--band-medium-fill);
+  --band-mark: var(--band-medium-mark);
+}
+
+.low {
+  --band-fill: var(--band-low-fill);
+  --band-mark: var(--band-low-mark);
+}
+
+.veryLow {
+  --band-fill: var(--band-very-low-fill);
+  --band-mark: var(--band-very-low-mark);
+}
+
+.other {
+  --band-fill: var(--band-other-fill);
+  --band-mark: var(--band-other-mark);
+}

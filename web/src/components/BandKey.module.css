@@ -1,0 +1,35 @@
+.key {
+  list-style: none;
+  padding: 0;
+  max-width: var(--measure);
+}
+
+.row {
+  display: grid;
+  grid-template-columns: auto 6rem 1fr;
+  align-items: center;
+  column-gap: var(--space-3);
+  padding-block: var(--space-2);
+}
+
+.row + .row {
+  border-top: 1px solid var(--line);
+}
+
+.name {
+  font-weight: 700;
+}
+
+.chance {
+  color: var(--ink-soft);
+}
+
+@media (max-width: 30rem) {
+  .row {
+    grid-template-columns: auto 1fr;
+  }
+
+  .chance {
+    grid-column: 2;
+  }
+}
