@@ -1,0 +1,586 @@
+{
+  "components": {
+    "schemas": {
+      "AreaComparisonResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "calculation_note": {
+            "title": "Calculation Note",
+            "type": "string"
+          },
+          "group": {
+            "title": "Group",
+            "type": "string"
+          },
+          "range_high": {
+            "title": "Range High",
+            "type": "number"
+          },
+          "range_low": {
+            "title": "Range Low",
+            "type": "number"
+          },
+          "type": {
+            "const": "area_comparison",
+            "default": "area_comparison",
+            "title": "Type",
+            "type": "string"
+          },
+          "unit": {
+            "title": "Unit",
+            "type": "string"
+          },
+          "value": {
+            "title": "Value",
+            "type": "number"
+          }
+        },
+        "required": [
+          "value",
+          "unit",
+          "group",
+          "range_low",
+          "range_high",
+          "calculation_note"
+        ],
+        "title": "AreaComparisonResponse",
+        "type": "object"
+      },
+      "AssessmentRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "latitude": {
+            "maximum": 90.0,
+            "minimum": -90.0,
+            "title": "Latitude",
+            "type": "number"
+          },
+          "longitude": {
+            "maximum": 180.0,
+            "minimum": -180.0,
+            "title": "Longitude",
+            "type": "number"
+          }
+        },
+        "required": [
+          "latitude",
+          "longitude"
+        ],
+        "title": "AssessmentRequest",
+        "type": "object"
+      },
+      "AssessmentResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "available_here": {
+            "title": "Available Here",
+            "type": "boolean"
+          },
+          "disclaimer": {
+            "title": "Disclaimer",
+            "type": "string"
+          },
+          "message": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Message"
+          },
+          "not_covered": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Not Covered",
+            "type": "array"
+          },
+          "region_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Region Id"
+          },
+          "region_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Region Name"
+          },
+          "results": {
+            "items": {
+              "$ref": "#/components/schemas/PerilResponse"
+            },
+            "title": "Results",
+            "type": "array"
+          }
+        },
+        "required": [
+          "available_here",
+          "region_id",
+          "region_name",
+          "message",
+          "disclaimer",
+          "not_covered",
+          "results"
+        ],
+        "title": "AssessmentResponse",
+        "type": "object"
+      },
+      "ErrorResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "detail": {
+            "title": "Detail",
+            "type": "string"
+          }
+        },
+        "required": [
+          "detail"
+        ],
+        "title": "ErrorResponse",
+        "type": "object"
+      },
+      "HealthResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "status": {
+            "const": "ok",
+            "default": "ok",
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "title": "HealthResponse",
+        "type": "object"
+      },
+      "LinkResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "label": {
+            "title": "Label",
+            "type": "string"
+          },
+          "url": {
+            "title": "Url",
+            "type": "string"
+          }
+        },
+        "required": [
+          "label",
+          "url"
+        ],
+        "title": "LinkResponse",
+        "type": "object"
+      },
+      "NearestZonesResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "search_radius_metres": {
+            "title": "Search Radius Metres",
+            "type": "number"
+          },
+          "type": {
+            "const": "nearest_zones",
+            "default": "nearest_zones",
+            "title": "Type",
+            "type": "string"
+          },
+          "zones": {
+            "items": {
+              "$ref": "#/components/schemas/ZoneResponse"
+            },
+            "title": "Zones",
+            "type": "array"
+          }
+        },
+        "required": [
+          "zones",
+          "search_radius_metres"
+        ],
+        "title": "NearestZonesResponse",
+        "type": "object"
+      },
+      "PerilResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "caveats": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Caveats",
+            "type": "array"
+          },
+          "how_sure": {
+            "title": "How Sure",
+            "type": "string"
+          },
+          "links": {
+            "items": {
+              "$ref": "#/components/schemas/LinkResponse"
+            },
+            "title": "Links",
+            "type": "array"
+          },
+          "measurement": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/NearestZonesResponse"
+              },
+              {
+                "$ref": "#/components/schemas/AreaComparisonResponse"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Measurement"
+          },
+          "peril_id": {
+            "title": "Peril Id",
+            "type": "string"
+          },
+          "sources": {
+            "items": {
+              "$ref": "#/components/schemas/SourceResponse"
+            },
+            "title": "Sources",
+            "type": "array"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          },
+          "summary": {
+            "title": "Summary",
+            "type": "string"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          },
+          "what_this_means": {
+            "title": "What This Means",
+            "type": "string"
+          },
+          "what_you_can_do": {
+            "items": {
+              "type": "string"
+            },
+            "title": "What You Can Do",
+            "type": "array"
+          }
+        },
+        "required": [
+          "peril_id",
+          "title",
+          "status",
+          "summary",
+          "what_this_means",
+          "how_sure",
+          "what_you_can_do",
+          "sources",
+          "measurement",
+          "caveats",
+          "links"
+        ],
+        "title": "PerilResponse",
+        "type": "object"
+      },
+      "PostcodeRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "postcode": {
+            "maxLength": 16,
+            "minLength": 1,
+            "title": "Postcode",
+            "type": "string"
+          }
+        },
+        "required": [
+          "postcode"
+        ],
+        "title": "PostcodeRequest",
+        "type": "object"
+      },
+      "PostcodeResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "attribution": {
+            "title": "Attribution",
+            "type": "string"
+          },
+          "latitude": {
+            "title": "Latitude",
+            "type": "number"
+          },
+          "longitude": {
+            "title": "Longitude",
+            "type": "number"
+          },
+          "postcode": {
+            "title": "Postcode",
+            "type": "string"
+          }
+        },
+        "required": [
+          "postcode",
+          "latitude",
+          "longitude",
+          "attribution"
+        ],
+        "title": "PostcodeResponse",
+        "type": "object"
+      },
+      "SourceResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "attribution": {
+            "title": "Attribution",
+            "type": "string"
+          },
+          "last_updated": {
+            "title": "Last Updated",
+            "type": "string"
+          },
+          "licence": {
+            "title": "Licence",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "publisher": {
+            "title": "Publisher",
+            "type": "string"
+          },
+          "resolution": {
+            "title": "Resolution",
+            "type": "string"
+          },
+          "url": {
+            "title": "Url",
+            "type": "string"
+          }
+        },
+        "required": [
+          "name",
+          "publisher",
+          "licence",
+          "url",
+          "attribution",
+          "last_updated",
+          "resolution"
+        ],
+        "title": "SourceResponse",
+        "type": "object"
+      },
+      "ZoneResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "band": {
+            "title": "Band",
+            "type": "string"
+          },
+          "label": {
+            "title": "Label",
+            "type": "string"
+          },
+          "metres": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Metres"
+          }
+        },
+        "required": [
+          "band",
+          "metres",
+          "label"
+        ],
+        "title": "ZoneResponse",
+        "type": "object"
+      }
+    }
+  },
+  "info": {
+    "title": "PerilMap API",
+    "version": "0.1.0"
+  },
+  "openapi": "3.1.0",
+  "paths": {
+    "/health": {
+      "get": {
+        "operationId": "health_health_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HealthResponse"
+                }
+              }
+            },
+            "description": "200"
+          }
+        },
+        "summary": "Health"
+      }
+    },
+    "/v1/assessments": {
+      "post": {
+        "operationId": "create_assessment_v1_assessments_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AssessmentRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AssessmentResponse"
+                }
+              }
+            },
+            "description": "200"
+          },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "413"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "422"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "429"
+          }
+        },
+        "summary": "Create Assessment"
+      }
+    },
+    "/v1/postcodes/lookup": {
+      "post": {
+        "operationId": "lookup_postcode_v1_postcodes_lookup_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PostcodeRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PostcodeResponse"
+                }
+              }
+            },
+            "description": "200"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "404"
+          },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "413"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "422"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "429"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "503"
+          }
+        },
+        "summary": "Lookup Postcode"
+      }
+    }
+  }
+}

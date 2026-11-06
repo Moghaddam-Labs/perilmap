@@ -1,0 +1,9 @@
+.main {
+  display: grid;
+  gap: var(--space-3);
+  max-width: var(--page);
+  min-height: 50vh;
+  align-content: center;
+  margin-inline: auto;
+  padding: var(--space-7) var(--gutter);
+}

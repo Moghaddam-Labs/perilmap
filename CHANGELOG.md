@@ -8,6 +8,9 @@ All notable changes to PerilMap are recorded here. The format follows
 
 ### Added
 
+- Website foundation in `web/`: Next.js, a design system with accessible flood level patterns and
+  status labels, light and dark themes, strict security headers, API types generated from the API's
+  contract, and tests for accessibility and colour contrast.
 - Deployment setup for Google Cloud Run: a Dockerfile, production-only dependencies, deploy and check
   scripts, a guide, and a CI check that the image builds.
 - Web API for assessments and postcode lookups, with rate limiting, security headers and protections
@@ -29,6 +32,10 @@ All notable changes to PerilMap are recorded here. The format follows
 - A list of blank surface water squares that show No data, so a gap can never look safe.
 - Results outside London show Not available here yet, and results near a gap are marked may be
   incomplete.
+
+### Fixed
+
+- The image cleanup command in the deployment guide now applies the policy, using `--no-dry-run`.
 
 ### Changed
 

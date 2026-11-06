@@ -6,8 +6,8 @@ PerilMap shows how exposed the area around a home is to climate-related perils, 
 quote arrives. Find your postcode, mark your home on the map, and get clear risk bands and
 plain-English explanations.
 
-> **Status: planning.** There's no app yet. This repo currently holds a data test, which checks that
-> London's flood data can be stored in small grid files and searched quickly and accurately.
+> **Status: in development.** The API is live and the website is being built. The website isn't public
+> yet.
 
 **Guidance only.** Results will not be an insurance quote, survey or financial advice. They describe
 risk to an area of land, not whether a particular property will flood.
@@ -28,6 +28,7 @@ Groundwater and reservoir flooding won't be covered at launch, and the app will 
 - `perilmap/regions/london`: the London plug-in. It reads the flood and heat files and supplies each
   result's wording, sources and links. The wording all sits in `wording.py`, so it's easy to review.
 - `perilmap/api`: the web API in front of the core.
+- `web`: the website, built with Next.js. Its colours, patterns and components are its design system.
 - `data_test`: builds and checks the flood and heat data.
 
 Adding a region or peril means writing a plug-in, not changing the core. Each plug-in returns a result
@@ -78,6 +79,31 @@ default.
 - Rate limiting scrambles visitors' addresses with a key that's never saved, and forgets each one once
   its minute has passed.
 - Postcode lookups go through our server, so postcodes.io sees the postcode but not who's searching.
+
+## Run the website
+
+You'll need Node.js 22. The website uses the live API unless you tell it otherwise.
+
+```bash
+cd web
+npm ci
+npm run dev
+```
+
+Open `http://localhost:3000`, and see every colour and component at `http://localhost:3000/design`.
+To use your own copy of the API, copy `web/.env.example` to `web/.env.local` and follow its notes.
+
+The site follows WCAG 2.2 AA. Flood levels always have a name and a pattern as well as a colour, and
+coral is only ever a brand accent, so it never signals risk. A test checks every colour pair in
+light and dark.
+
+The website's API types are generated from the API itself. After changing the API's responses, run
+this from the repo root, and commit the result:
+
+```bash
+python scripts/export_openapi.py
+cd web && npm run api:types
+```
 
 ## Deploy
 
@@ -145,6 +171,18 @@ whether they were downloaded. `measure` fails if that list no longer matches the
 ruff check .
 ruff format --check .
 pytest
+```
+
+For the website, from the `web` folder:
+
+```bash
+npm run format:check
+npm run lint
+npm run typecheck
+npm test
+npm run build
+npx playwright install chromium
+npm run test:e2e
 ```
 
 ## Data sources
