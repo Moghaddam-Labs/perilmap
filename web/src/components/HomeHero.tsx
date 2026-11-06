@@ -1,10 +1,10 @@
-import { BrandMark } from "./BrandMark";
+import type { ReactNode } from "react";
 import styles from "./HomeHero.module.css";
 
-/** The opening of the home page, matching the repo's banner: the Thames, a pin and its search circle. */
-export function HomeHero() {
+/** The opening of the home page: the Thames, a pin and its search circle, with search in front. */
+export function HomeHero({ search }: { search: ReactNode }) {
   return (
-    <header className={styles.hero}>
+    <section className={styles.hero}>
       <div className={styles.map} aria-hidden="true">
         {/* next/image adds an inline style, which the site's content security policy blocks. */}
         {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -24,18 +24,11 @@ export function HomeHero() {
         </svg>
       </div>
       <div className={styles.inner}>
-        <p className={styles.wordmark}>
-          <BrandMark />
-          PerilMap
-        </p>
         <h1 className={styles.title}>
           See the climate risks around a home, before the insurance quote arrives.
         </h1>
-        <p className={styles.lead}>
-          PerilMap looks at flooding, summer heat and ground movement around a spot in London. For
-          each one, it says what the result means, how sure it is and what you can do next.
-        </p>
+        <div className={styles.search}>{search}</div>
       </div>
-    </header>
+    </section>
   );
 }

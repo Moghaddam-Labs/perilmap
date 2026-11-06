@@ -7,7 +7,9 @@ import { BandSwatch } from "@/components/BandSwatch";
 import { Button } from "@/components/Button";
 import { ExternalLink } from "@/components/ExternalLink";
 import { Notice } from "@/components/Notice";
+import { hasPerilIcon, PerilIcon } from "@/components/PerilIcon";
 import { SiteFooter } from "@/components/SiteFooter";
+import { SiteHeader } from "@/components/SiteHeader";
 import { StatusBadge } from "@/components/StatusBadge";
 import { TextField } from "@/components/TextField";
 
@@ -151,5 +153,41 @@ describe("SiteFooter", () => {
 
   it("passes the accessibility checks", async () => {
     expect(await violations(<SiteFooter />)).toEqual([]);
+  });
+});
+
+describe("SiteHeader", () => {
+  it("links to the home page and the two main sections", () => {
+    render(<SiteHeader />);
+    expect(screen.getByRole("link", { name: "PerilMap" }).getAttribute("href")).toBe("/");
+    const links = screen.getByRole("navigation", { name: "Main" }).querySelectorAll("a");
+    expect([...links].map((link) => link.getAttribute("href"))).toEqual([
+      "/#how-it-works",
+      "/#privacy",
+    ]);
+  });
+
+  it("passes the accessibility checks", async () => {
+    expect(await violations(<SiteHeader />)).toEqual([]);
+  });
+});
+
+describe("PerilIcon", () => {
+  it.each(["flood_rivers_and_sea", "flood_surface_water", "heat", "subsidence"])(
+    "has its own icon for %s",
+    (perilId) => {
+      expect(hasPerilIcon(perilId)).toBe(true);
+    },
+  );
+
+  it("gives a new plug-in's peril a neutral icon rather than nothing", () => {
+    expect(hasPerilIcon("a_new_peril")).toBe(false);
+    const { container } = render(<PerilIcon perilId="a_new_peril" />);
+    expect(container.querySelector("svg path")).toBeTruthy();
+  });
+
+  it("hides the icon from screen readers, because the peril's name is beside it", () => {
+    const { container } = render(<PerilIcon perilId="heat" />);
+    expect(container.querySelector("svg")?.getAttribute("aria-hidden")).toBe("true");
   });
 });

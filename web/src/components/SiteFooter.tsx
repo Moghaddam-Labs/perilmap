@@ -43,9 +43,17 @@ const PROJECT_LINKS = [
   { label: "Changelog", href: `${REPO}/blob/main/CHANGELOG.md` },
 ];
 
-function FooterColumn({ title, children }: { title: string; children: ReactNode }) {
+function FooterColumn({
+  title,
+  id,
+  children,
+}: {
+  title: string;
+  id?: string;
+  children: ReactNode;
+}) {
   return (
-    <section className={styles.column}>
+    <section id={id} className={styles.column}>
       <h2 className={styles.heading}>{title}</h2>
       {children}
     </section>
@@ -86,7 +94,7 @@ export function SiteFooter() {
             </ul>
           </FooterColumn>
 
-          <FooterColumn title="Your privacy">
+          <FooterColumn title="Your privacy" id="privacy">
             <p>
               Searched locations aren&apos;t saved, and they&apos;re kept out of web addresses and
               logs.

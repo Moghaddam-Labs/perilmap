@@ -8,11 +8,17 @@ All notable changes to PerilMap are recorded here. The format follows
 
 ### Changed
 
+- The website's main colour is now ink green, across the site, its icon, the README banner and the
+  social preview.
+- The home page has a slim top bar, room for postcode search at the top, a shorter header on phones,
+  and new sections for what PerilMap looks at and how it works. The flood key and gap explanations
+  now sit further down.
 - Website styling: pill-shaped controls, softly rounded panels, and a labelled two-tone footer holding
   data credits, licences, project links and the privacy summary.
 
 ### Added
 
+- Icons for each peril, ready for the result cards, with a neutral icon for future plug-ins.
 - Website foundation in `web/`: Next.js, a design system with accessible flood level patterns and
   status labels, light and dark themes, strict security headers, API types generated from the API's
   contract, and tests for accessibility and colour contrast.

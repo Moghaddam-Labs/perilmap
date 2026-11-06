@@ -6,6 +6,7 @@ import { BrandMark } from "@/components/BrandMark";
 import { Button } from "@/components/Button";
 import { ExternalLink } from "@/components/ExternalLink";
 import { Notice } from "@/components/Notice";
+import { PerilIcon } from "@/components/PerilIcon";
 import { StatusBadge } from "@/components/StatusBadge";
 import { TextField } from "@/components/TextField";
 import { isDesignPageEnabled } from "@/lib/config";
@@ -23,6 +24,14 @@ const STATUSES = [
   "not_available_here",
   "temporarily_unavailable",
   "a_new_status",
+];
+
+const PERIL_ICONS = [
+  { perilId: "flood_rivers_and_sea", label: "Flooding from rivers and the sea" },
+  { perilId: "flood_surface_water", label: "Flooding from surface water" },
+  { perilId: "heat", label: "Summer heat" },
+  { perilId: "subsidence", label: "Ground movement" },
+  { perilId: "a_new_peril", label: "A peril from a future plug-in" },
 ];
 
 const COLOURS = [
@@ -81,6 +90,18 @@ export default function DesignPage() {
         <p className={styles.row}>
           <BandSwatch pattern="other" /> A band from a future plug-in, shown under its own name
         </p>
+      </section>
+
+      <section>
+        <h2>Peril icons</h2>
+        <ul className={styles.perils}>
+          {PERIL_ICONS.map(({ perilId, label }) => (
+            <li key={perilId}>
+              <PerilIcon perilId={perilId} />
+              {label}
+            </li>
+          ))}
+        </ul>
       </section>
 
       <section>

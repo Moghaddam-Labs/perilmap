@@ -7,17 +7,16 @@
   color-scheme: light dark;
 
   /* Brand. Coral is an accent, never used to signal a level of risk. */
-  --brand-deep: #2f1218;
+  --brand-deep: #12332b;
   --brand-coral: #ff7f6e;
-  --brand-blush: #f6dcd8;
 
   /* Surfaces and text */
-  --paper: #f3f6f7;
+  --paper: #f3f6f4;
   --surface: #ffffff;
-  --ink: #2f1218;
-  --ink-soft: #5e464b;
-  --line: #c9d2d6;
-  --control-edge: #6f5a5f;
+  --ink: #12332b;
+  --ink-soft: #46594f;
+  --line: #c8d5cf;
+  --control-edge: #5c7067;
 
   /* Interactive */
   --link: #a12c17;
@@ -26,13 +25,13 @@
 
   /* The hero stays dark in both themes */
   --hero-ink: #ffffff;
-  --hero-ink-soft: #f6dcd8;
+  --hero-ink-soft: #d9e8e1;
   --hero-focus: #ff7f6e;
 
   /* The footer's two tones stay the same in both themes, with one ink that reads on either */
   --footer-tone-a: #ff7f6e;
   --footer-tone-b: #f9c9b6;
-  --footer-ink: #2f1218;
+  --footer-ink: #12332b;
 
   /* Flood levels: one blue family from pale to deep, the same in both themes so they match the map */
   --band-high-fill: #0a3a66;
@@ -77,12 +76,12 @@
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --paper: #1f0c10;
-    --surface: #2c151a;
-    --ink: #fbeeeb;
-    --ink-soft: #dcc4bf;
-    --line: #573a40;
-    --control-edge: #b0959a;
+    --paper: #0c1f1a;
+    --surface: #15302a;
+    --ink: #eef6f2;
+    --ink-soft: #bcd0c7;
+    --line: #2f4a42;
+    --control-edge: #8fa89e;
 
     --link: #ff9f92;
     --focus: #ff9f92;
