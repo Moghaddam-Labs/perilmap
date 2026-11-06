@@ -64,6 +64,34 @@ test("every footer link can be reached by keyboard and shows where focus is", as
   expect(outline).toBe("solid");
 });
 
+test("the top bar's links lead to real parts of the page", async ({ page }) => {
+  await page.goto("/");
+  const nav = page.getByRole("navigation", { name: "Main" });
+  await nav.getByRole("link", { name: "How it works" }).click();
+  await expect(page).toHaveURL(/#how-it-works$/);
+  await expect(page.locator("#how-it-works")).toBeInViewport();
+  await nav.getByRole("link", { name: "Privacy" }).click();
+  await expect(page).toHaveURL(/#privacy$/);
+  await expect(page.locator("#privacy")).toBeInViewport();
+});
+
+test("the top bar's links also work from another page", async ({ page }) => {
+  await page.goto("/nothing-here");
+  await page.getByRole("link", { name: "How it works" }).click();
+  await expect(page).toHaveURL(/\/#how-it-works$/);
+  await expect(page.getByRole("heading", { name: "How it works" })).toBeVisible();
+});
+
+test("the phone hero stays short", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto("/");
+  const hero = await page
+    .getByRole("heading", { level: 1 })
+    .locator("xpath=ancestor::section")
+    .boundingBox();
+  expect(hero?.height).toBeLessThan(620);
+});
+
 test("an unknown page says so", async ({ page }) => {
   const response = await page.goto("/nothing-here");
   expect(response?.status()).toBe(404);
