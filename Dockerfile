@@ -6,6 +6,11 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 
 WORKDIR /app
 
+# The data packages need these system libraries, and the slim image may leave some out.
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends libexpat1 libstdc++6 zlib1g \
+    && rm -rf /var/lib/apt/lists/*
+
 COPY requirements.api.lock .
 RUN pip install --no-cache-dir -r requirements.api.lock
 
