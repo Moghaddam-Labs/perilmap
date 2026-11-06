@@ -55,6 +55,15 @@ test("the skip link is first and moves to the main content", async ({ page }) =>
   await expect(page).toHaveURL(/#main$/);
 });
 
+test("every footer link can be reached by keyboard and shows where focus is", async ({ page }) => {
+  await page.goto("/");
+  const firstLink = page.getByRole("contentinfo").getByRole("link").first();
+  await firstLink.focus();
+  await expect(firstLink).toBeFocused();
+  const outline = await firstLink.evaluate((link) => getComputedStyle(link).outlineStyle);
+  expect(outline).toBe("solid");
+});
+
 test("an unknown page says so", async ({ page }) => {
   const response = await page.goto("/nothing-here");
   expect(response?.status()).toBe(404);

@@ -6,6 +6,11 @@ All notable changes to PerilMap are recorded here. The format follows
 
 ## [Unreleased]
 
+### Changed
+
+- Website styling: pill-shaped controls, softly rounded panels, and a labelled two-tone footer holding
+  data credits, licences, project links and the privacy summary.
+
 ### Added
 
 - Website foundation in `web/`: Next.js, a design system with accessible flood level patterns and

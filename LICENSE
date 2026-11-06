@@ -2,6 +2,6 @@ Copyright (c) 2026 Shaz Moghaddam, trading as PerilMap, https://shazmoghaddam.gi
 
 This software and its source code are proprietary. The source is publicly viewable, but no licence is granted to copy, modify, distribute, sublicense or use any part of it, in whole or in part, without the prior written permission of the copyright holder.
 
-Third-party components keep their own licences, listed in requirements.lock and frontend/package-lock.json. Third-party data keeps its own licence and attribution, listed in the README under Data Sources.
+Third-party components keep their own licences, listed in requirements.lock and web/package-lock.json. Third-party data keeps its own licence and attribution, listed in the README under Data Sources.
 
 Contact: shaz.moghaddam@gmail.com

@@ -2,7 +2,7 @@
   min-height: 2.75rem;
   padding: var(--space-2) var(--space-5);
   border: 2px solid var(--ink);
-  border-radius: var(--radius);
+  border-radius: var(--radius-pill);
   font: inherit;
   font-weight: 700;
   cursor: pointer;

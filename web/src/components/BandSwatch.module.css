@@ -3,6 +3,8 @@
   height: 2rem;
   flex: none;
   border: 1px solid var(--ink);
+  border-radius: var(--radius-key);
+  overflow: hidden;
 }
 
 .fill {

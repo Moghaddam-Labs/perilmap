@@ -7,7 +7,7 @@
   color-scheme: light dark;
 
   /* Brand. Coral is an accent, never used to signal a level of risk. */
-  --brand-maroon: #2f1218;
+  --brand-deep: #2f1218;
   --brand-coral: #ff7f6e;
   --brand-blush: #f6dcd8;
 
@@ -24,10 +24,15 @@
   --focus: #a12c17;
   --error: #a3201a;
 
-  /* The hero stays maroon in both themes */
+  /* The hero stays dark in both themes */
   --hero-ink: #ffffff;
   --hero-ink-soft: #f6dcd8;
   --hero-focus: #ff7f6e;
+
+  /* The footer's two tones stay the same in both themes, with one ink that reads on either */
+  --footer-tone-a: #ff7f6e;
+  --footer-tone-b: #f9c9b6;
+  --footer-ink: #2f1218;
 
   /* Flood levels: one blue family from pale to deep, the same in both themes so they match the map */
   --band-high-fill: #0a3a66;
@@ -62,7 +67,12 @@
   --measure: 38rem;
   --page: 72rem;
   --gutter: clamp(1rem, 4vw, 2.5rem);
-  --radius: 0.25rem;
+
+  /* Shapes: controls are pills, panels are softly rounded, map key squares stay nearly square */
+  --radius-pill: 999px;
+  --radius-panel: 1.25rem;
+  --radius-feature: 2rem;
+  --radius-key: 0.3125rem;
 }
 
 @media (prefers-color-scheme: dark) {

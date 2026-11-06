@@ -6,7 +6,7 @@
 
 .ring {
   fill: none;
-  stroke: var(--brand-coral);
+  stroke: var(--mark-ring, var(--brand-coral));
   stroke-width: 2;
   stroke-dasharray: 3.6 3.73;
 }
@@ -16,5 +16,5 @@
 }
 
 .hole {
-  fill: var(--mark-hole, var(--brand-maroon));
+  fill: var(--mark-hole, var(--brand-deep));
 }

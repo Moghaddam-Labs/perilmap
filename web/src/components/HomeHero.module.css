@@ -1,8 +1,10 @@
 .hero {
   --focus: var(--hero-focus);
   position: relative;
+  margin: var(--space-3);
   overflow: hidden;
-  background: var(--brand-maroon);
+  border-radius: var(--radius-feature);
+  background: var(--brand-deep);
   color: var(--hero-ink);
 }
 
@@ -14,7 +16,7 @@
 }
 
 .wordmark {
-  --mark-hole: var(--brand-maroon);
+  --mark-hole: var(--brand-deep);
   display: flex;
   align-items: center;
   gap: var(--space-2);
@@ -79,7 +81,7 @@
 }
 
 .hole {
-  fill: var(--brand-maroon);
+  fill: var(--brand-deep);
 }
 
 @media (max-width: 56rem) {
