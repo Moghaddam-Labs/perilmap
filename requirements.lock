@@ -1,11 +1,21 @@
 affine==3.0.1
     # via rasterio
+annotated-doc==0.0.5
+    # via fastapi
+annotated-types==0.8.0
+    # via pydantic
+anyio==4.16.0
+    # via
+    #   httpx
+    #   starlette
 attrs==26.1.0
     # via
     #   affine
     #   rasterio
 certifi==2026.10.23
     # via
+    #   httpcore
+    #   httpx
     #   pyogrio
     #   rasterio
 click==8.5.0
@@ -13,10 +23,25 @@ click==8.5.0
     #   click-plugins
     #   cligj
     #   rasterio
+    #   uvicorn
 click-plugins==1.1.1.2
     # via rasterio
 cligj==0.7.2
     # via rasterio
+fastapi==0.162.0
+    # via perilmap (pyproject.toml)
+h11==0.16.0
+    # via
+    #   httpcore
+    #   uvicorn
+httpcore==1.0.9
+    # via httpx
+httpx==0.28.1
+    # via perilmap (pyproject.toml)
+idna==3.20
+    # via
+    #   anyio
+    #   httpx
 iniconfig==2.3.1
     # via pytest
 numpy==2.4.6
@@ -25,6 +50,8 @@ numpy==2.4.6
     #   pyogrio
     #   rasterio
     #   shapely
+opentelemetry-api==1.45.2
+    # via fastapi
 packaging==26.3
     # via
     #   pyogrio
@@ -33,6 +60,10 @@ pluggy==1.7.0
     # via pytest
 pyarrow==26.0.1
     # via perilmap (pyproject.toml)
+pydantic==2.14.3
+    # via fastapi
+pydantic-core==2.50.4
+    # via pydantic
 pygments==2.21.0
     # via pytest
 pyogrio==0.13.0
@@ -46,4 +77,21 @@ rasterio==1.4.4
 ruff==0.17.3
     # via perilmap (pyproject.toml)
 shapely==2.2.0
+    # via perilmap (pyproject.toml)
+starlette==1.10.0
+    # via fastapi
+typing-extensions==4.16.0
+    # via
+    #   anyio
+    #   fastapi
+    #   opentelemetry-api
+    #   pydantic
+    #   pydantic-core
+    #   starlette
+    #   typing-inspection
+typing-inspection==0.4.5
+    # via
+    #   fastapi
+    #   pydantic
+uvicorn==0.54.0
     # via perilmap (pyproject.toml)

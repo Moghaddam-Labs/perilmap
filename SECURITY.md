@@ -12,6 +12,6 @@ PerilMap is at the planning stage and has no released versions. Fixes go to the 
 
 ## Handling secrets and personal data
 
-- The data test needs no credentials and doesn't connect to a database.
-- It uses landmark locations only, so it doesn't handle anyone's address.
-- Credentials added later stay in a local `.env` file, which Git ignores.
+- The API needs no credentials or database, and doesn't store searched locations or postcodes.
+- Locations and postcodes aren't logged, and error replies don't repeat them.
+- Any credentials added later stay in a local `.env` file, which Git ignores.
