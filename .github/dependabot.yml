@@ -14,6 +14,13 @@ updates:
     groups:
       website-dependencies:
         patterns: ["*"]
+    ignore:
+      # openapi-typescript only supports TypeScript 5 so far.
+      - dependency-name: typescript
+        update-types: ["version-update:semver-major"]
+      # These types should match the Node.js version in web/.nvmrc.
+      - dependency-name: "@types/node"
+        update-types: ["version-update:semver-major"]
   - package-ecosystem: github-actions
     directory: /
     schedule:
