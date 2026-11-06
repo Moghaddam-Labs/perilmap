@@ -73,9 +73,16 @@ default.
 - Locations and postcodes are only accepted in request bodies, never in web addresses.
 - Run the server with `--no-access-log`. The app doesn't log locations or postcodes, and error replies
   don't repeat them.
+- Cloud Run's own request logs are turned off when deploying, because they'd keep visitors' internet
+  addresses. Details are in the deployment guide.
 - Rate limiting scrambles visitors' addresses with a key that's never saved, and forgets each one once
   its minute has passed.
 - Postcode lookups go through our server, so postcodes.io sees the postcode but not who's searching.
+
+## Deploy
+
+See [the deployment guide](docs/deployment.md). The API runs on Google Cloud Run in London, with a
+monthly spend cap, a single server and rate limiting.
 
 ## Run the data test
 
@@ -88,6 +95,9 @@ python3 -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.lock
 ```
+
+`requirements.lock` holds everything for development. The deployed app uses the smaller
+`requirements.api.lock`.
 
 **2. Download the data**
 

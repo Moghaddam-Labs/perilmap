@@ -11,7 +11,6 @@ dependencies = [
     "fastapi>=0.115",
     "httpx>=0.27",
     "numpy>=2",
-    "pyarrow>=17",
     "pyogrio>=0.10",
     "rasterio>=1.4",
     "shapely>=2",
@@ -19,6 +18,8 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
+# Only the data test needs this, and it's large, so the deployed app leaves it out.
+data = ["pyarrow>=17"]
 dev = ["pytest>=8", "ruff>=0.6"]
 
 [tool.pytest.ini_options]

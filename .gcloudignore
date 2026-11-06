@@ -1,0 +1,12 @@
+# Upload only what the image needs. Without this file, gcloud would follow .gitignore
+# and leave out the grids folder, which the app can't start without.
+/*
+!/Dockerfile
+!/.dockerignore
+!/requirements.api.lock
+!/perilmap/
+!/grids/
+**/__pycache__/
+**/*.pyc
+/grids/*.json
+!/grids/heat_air_temperature.json
