@@ -3,32 +3,39 @@
   gap: var(--space-7);
   max-width: var(--page);
   margin-inline: auto;
-  padding: var(--space-7) var(--gutter);
+  padding: var(--space-7) var(--gutter) var(--space-8);
 }
 
 .answers {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
-  gap: var(--space-5);
+  gap: var(--space-4);
   margin-block-start: var(--space-5);
+}
+
+.answers > div {
+  padding: var(--space-5);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-panel);
+  background: var(--surface);
 }
 
 .question {
   font-size: var(--text-lg);
   font-weight: 700;
+  line-height: 1.2;
 }
 
 .answers dd {
-  margin-block-start: var(--space-1);
+  margin-block-start: var(--space-2);
   color: var(--ink-soft);
 }
 
 .split {
   display: grid;
   grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
-  gap: var(--space-5) var(--space-6);
-  padding-block-start: var(--space-6);
-  border-top: 1px solid var(--line);
+  gap: var(--space-5) var(--space-7);
+  align-items: start;
 }
 
 .intro {
@@ -39,13 +46,23 @@
 
 .gaps {
   display: grid;
-  gap: var(--space-4);
-  padding: 0;
+  padding: var(--space-2) var(--space-5);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-panel);
+  background: var(--surface);
   list-style: none;
 }
 
+.gaps li {
+  padding-block: var(--space-4);
+}
+
+.gaps li + li {
+  border-top: 1px solid var(--line);
+}
+
 .gaps p {
-  margin-block-start: var(--space-1);
+  margin-block-start: var(--space-2);
 }
 
 @media (max-width: 48rem) {

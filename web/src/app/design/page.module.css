@@ -48,6 +48,7 @@
   height: 3rem;
   margin-block-end: var(--space-1);
   border: 1px solid var(--ink);
+  border-radius: var(--radius-panel);
 }
 
 .colour-paper {
@@ -74,8 +75,8 @@
 .colour-error {
   background: var(--error);
 }
-.colour-brand-maroon {
-  background: var(--brand-maroon);
+.colour-brand-deep {
+  background: var(--brand-deep);
 }
 .colour-brand-coral {
   background: var(--brand-coral);

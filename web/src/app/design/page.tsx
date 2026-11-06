@@ -34,7 +34,7 @@ const COLOURS = [
   "control-edge",
   "link",
   "error",
-  "brand-maroon",
+  "brand-deep",
   "brand-coral",
 ];
 

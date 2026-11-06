@@ -7,6 +7,7 @@ import { BandSwatch } from "@/components/BandSwatch";
 import { Button } from "@/components/Button";
 import { ExternalLink } from "@/components/ExternalLink";
 import { Notice } from "@/components/Notice";
+import { SiteFooter } from "@/components/SiteFooter";
 import { StatusBadge } from "@/components/StatusBadge";
 import { TextField } from "@/components/TextField";
 
@@ -130,5 +131,25 @@ describe("Notice", () => {
   it("doesn't interrupt for ordinary information", () => {
     render(<Notice title="Good to know">Details.</Notice>);
     expect(screen.queryByRole("alert")).toBeNull();
+  });
+});
+
+describe("SiteFooter", () => {
+  it("labels each group of information", () => {
+    render(<SiteFooter />);
+    const headings = screen.getAllByRole("heading").map((heading) => heading.textContent);
+    expect(headings).toEqual(["Data sources", "Project", "Your privacy"]);
+  });
+
+  it("credits the data's publishers and licence", () => {
+    render(<SiteFooter />);
+    const footer = screen.getByRole("contentinfo").textContent;
+    expect(footer).toContain("© Environment Agency copyright and/or database right 2025");
+    expect(footer).toContain("BGS © UKRI");
+    expect(footer).toContain("Open Government Licence");
+  });
+
+  it("passes the accessibility checks", async () => {
+    expect(await violations(<SiteFooter />)).toEqual([]);
   });
 });

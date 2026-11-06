@@ -1,12 +1,13 @@
 .notice {
   max-width: var(--measure);
-  padding: var(--space-3) var(--space-4);
-  border-inline-start: 4px solid var(--control-edge);
+  padding: var(--space-4) var(--space-5);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-panel);
   background: var(--surface);
 }
 
 .error {
-  border-inline-start-color: var(--error);
+  border: 2px solid var(--error);
 }
 
 .title {
