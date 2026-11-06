@@ -96,8 +96,9 @@ export function SiteFooter() {
 
           <FooterColumn title="Your privacy" id="privacy">
             <p>
-              Searched locations aren&apos;t saved, and they&apos;re kept out of web addresses and
-              logs.
+              Searched postcodes and locations aren&apos;t saved, and they&apos;re kept out of web
+              addresses and logs. The map comes from OpenFreeMap, which can see which area of the
+              map you&apos;re looking at, but not the postcode or the pin.
             </p>
           </FooterColumn>
         </div>
@@ -108,7 +109,8 @@ export function SiteFooter() {
             2025. All rights reserved. Temperature data: Greater London Authority, using Arup&apos;s
             UHeat model. Ground movement information: BGS © UKRI. Contains OS data © Crown copyright
             2020. London boundary: contains National Statistics data and Ordnance Survey data ©
-            Crown copyright and database right 2015.
+            Crown copyright and database right 2015. Map: OpenFreeMap © OpenMapTiles, data from
+            OpenStreetMap © OpenStreetMap contributors.
           </p>
           <p>
             Used under the Open Government Licence:{" "}

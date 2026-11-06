@@ -27,6 +27,7 @@
   --hero-ink: #ffffff;
   --hero-ink-soft: #d9e8e1;
   --hero-focus: #ff7f6e;
+  --hero-error: #ffb4a8;
 
   /* The footer's two tones stay the same in both themes, with one ink that reads on either */
   --footer-tone-a: #ff7f6e;

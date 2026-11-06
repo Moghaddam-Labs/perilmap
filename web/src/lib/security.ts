@@ -1,5 +1,7 @@
 /** The browser rules that limit what any page on this site can load or send. */
 
+import { MAP_TILE_ORIGIN } from "./map";
+
 export interface ContentSecurityPolicyOptions {
   nonce: string;
   apiOrigin: string;
@@ -20,10 +22,14 @@ export function contentSecurityPolicy({
     "default-src": ["'self'"],
     "script-src": ["'self'", `'nonce-${nonce}'`, "'strict-dynamic'", ...developmentOnly.script],
     "style-src": ["'self'", ...developmentOnly.style],
-    "img-src": ["'self'"],
+    // The map draws its images from data it has already downloaded.
+    "img-src": ["'self'", "data:", "blob:"],
     "font-src": ["'self'"],
-    // Locations may only be sent to the site itself and PerilMap's API.
-    "connect-src": ["'self'", apiOrigin, ...developmentOnly.connect],
+    // Locations may only be sent to the site itself and PerilMap's API. The map images come from
+    // OpenFreeMap, which sees which area of the map is shown, but not the postcode or the pin.
+    "connect-src": ["'self'", apiOrigin, MAP_TILE_ORIGIN, ...developmentOnly.connect],
+    // The map's worker file is served by the site itself. 'strict-dynamic' would otherwise block it.
+    "worker-src": ["'self'"],
     "object-src": ["'none'"],
     "base-uri": ["'none'"],
     "form-action": ["'self'"],

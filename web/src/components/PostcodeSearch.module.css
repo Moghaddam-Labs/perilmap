@@ -1,0 +1,105 @@
+.form {
+  display: grid;
+  gap: var(--space-1);
+}
+
+.label,
+.hint,
+.error {
+  padding-inline-start: var(--space-5);
+}
+
+.label {
+  color: var(--hero-ink);
+  font-weight: 700;
+}
+
+.hint {
+  color: var(--hero-ink-soft);
+  font-size: var(--text-sm);
+}
+
+.error {
+  color: var(--hero-error);
+  font-size: var(--text-sm);
+  font-weight: 700;
+}
+
+/* The box and its button share one white pill. */
+.row {
+  display: flex;
+  min-width: 0;
+  gap: var(--space-2);
+  margin-block-start: var(--space-2);
+  padding: 0.375rem;
+  border-radius: var(--radius-pill);
+  background: #fff;
+}
+
+/* Coral on white is too faint for a focus ring, so the ring goes around the whole pill. */
+.row:has(.input:focus-visible) {
+  outline: 3px solid var(--hero-focus);
+  outline-offset: 3px;
+}
+
+.row:has(.input[aria-invalid="true"]) {
+  box-shadow: 0 0 0 3px var(--hero-error);
+}
+
+/* A zero width lets the box shrink on narrow phones, instead of keeping its default size. */
+.input {
+  flex: 1;
+  width: 0;
+  min-width: 0;
+  min-height: 3rem;
+  padding-inline: var(--space-4);
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: transparent;
+  color: var(--brand-deep);
+  font: inherit;
+  font-size: 1.125rem;
+  font-weight: 650;
+  letter-spacing: 0.02em;
+}
+
+.input:focus-visible {
+  outline: none;
+}
+
+.submit {
+  flex: none;
+  min-height: 3rem;
+  padding-inline: var(--space-5);
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: var(--brand-coral);
+  color: var(--brand-deep);
+  font: inherit;
+  font-weight: 750;
+  cursor: pointer;
+}
+
+.submit:hover:not(:disabled) {
+  background: #ff9a8c;
+}
+
+.submit:focus-visible {
+  outline: 3px solid var(--brand-deep);
+  outline-offset: 2px;
+}
+
+.submit:disabled {
+  cursor: progress;
+}
+
+@media (max-width: 24rem) {
+  .row {
+    flex-wrap: wrap;
+    border-radius: var(--radius-panel);
+  }
+
+  .submit {
+    width: 100%;
+  }
+}

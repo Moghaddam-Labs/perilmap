@@ -48,8 +48,11 @@ describe("contentSecurityPolicy", () => {
     expect(policy).not.toContain("unsafe-eval");
   });
 
-  it("only lets data go to the site and its API", () => {
-    expect(policy).toContain("connect-src 'self' https://api.example.com");
+  it("only lets data go to the site, its API and the map's images", () => {
+    expect(policy).toContain(
+      "connect-src 'self' https://api.example.com https://tiles.openfreemap.org;",
+    );
+    expect(policy).toContain("worker-src 'self'");
     expect(policy).toContain("form-action 'self'");
   });
 
