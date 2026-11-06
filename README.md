@@ -27,11 +27,55 @@ Groundwater and reservoir flooding won't be covered at launch, and the app will 
   from each peril. It knows nothing about any real place, and a test enforces that.
 - `perilmap/regions/london`: the London plug-in. It reads the flood and heat files and supplies each
   result's wording, sources and links. The wording all sits in `wording.py`, so it's easy to review.
+- `perilmap/api`: the web API in front of the core.
 - `data_test`: builds and checks the flood and heat data.
 
 Adding a region or peril means writing a plug-in, not changing the core. Each plug-in returns a result
 that must say what it means, how sure it is and what someone can do next, and must credit its sources.
 A gap in the data can't carry a number, so it can never look like a low risk.
+
+## Run the API
+
+The API reads the built flood and heat files from the `grids/` folder.
+
+```bash
+PERILMAP_SHOW_DOCS=true uvicorn perilmap.api.main:app --no-access-log --port 8000
+```
+
+Then try it from another terminal window:
+
+```bash
+curl -X POST http://127.0.0.1:8000/v1/assessments \
+  -H "Content-Type: application/json" \
+  -d '{"latitude": 51.5074, "longitude": -0.1278}'
+```
+
+With `PERILMAP_SHOW_DOCS=true`, interactive docs are at `http://127.0.0.1:8000/docs`. They're off by
+default.
+
+| Endpoint | What it does |
+|---|---|
+| `POST /v1/assessments` | Takes a latitude and longitude, and returns a result for each peril |
+| `POST /v1/postcodes/lookup` | Takes a postcode, and returns its position through postcodes.io |
+| `GET /health` | Says the API is running |
+
+| Environment variable | What it does | Default |
+|---|---|---|
+| `PERILMAP_DATA_DIR` | Folder holding the built data files | `grids` |
+| `PERILMAP_ALLOWED_ORIGINS` | Comma-separated websites allowed to call the API | None |
+| `PERILMAP_TRUST_FORWARDED_FOR` | Use the proxy's client address header for rate limiting | Off |
+| `PERILMAP_SHOW_DOCS` | Show the interactive docs | Off |
+| `PERILMAP_CLIENT_RATE_LIMIT` | Requests per minute for each visitor | 30 |
+| `PERILMAP_TOTAL_RATE_LIMIT` | Requests per minute across all visitors | 300 |
+
+### Privacy
+
+- Locations and postcodes are only accepted in request bodies, never in web addresses.
+- Run the server with `--no-access-log`. The app doesn't log locations or postcodes, and error replies
+  don't repeat them.
+- Rate limiting scrambles visitors' addresses with a key that's never saved, and forgets each one once
+  its minute has passed.
+- Postcode lookups go through our server, so postcodes.io sees the postcode but not who's searching.
 
 ## Run the data test
 
@@ -100,6 +144,7 @@ pytest
 | [Risk of Flooding from Rivers and Sea](https://www.data.gov.uk/dataset/943d2bbb-aa08-45d1-96cb-42556cd01d94/risk-of-flooding-from-rivers-and-sea2) | Environment Agency | [Open Government Licence v3.0](https://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/) |
 | [Risk of Flooding from Surface Water](https://www.data.gov.uk/dataset/risk-of-flooding-from-surface-water3) | Environment Agency | [Open Government Licence v3.0](https://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/) |
 | [Climate Risk Mapping, mean air temperature](https://data.london.gov.uk/dataset/climate-risk-mapping) | Greater London Authority, Bloomberg Associates and Arup | [Open Government Licence v3.0](https://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/) |
+| [Postcode lookup](https://postcodes.io/) | postcodes.io | Credited in each lookup reply |
 | [Greater London boundary](https://data.london.gov.uk/dataset/statistical-gis-boundary-files-london) | Greater London Authority | [Open Government Licence v2.0](https://www.nationalarchives.gov.uk/doc/open-government-licence/version/2/) |
 
 © Environment Agency copyright and/or database right 2025. All rights reserved.

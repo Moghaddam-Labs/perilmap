@@ -8,6 +8,8 @@ All notable changes to PerilMap are recorded here. The format follows
 
 ### Added
 
+- Web API for assessments and postcode lookups, with rate limiting, security headers and protections
+  that keep locations out of logs, web addresses and error replies.
 - London plug-in, with flood distances, the heat comparison and the subsidence explainer, each with
   plain-English wording, guidance links and credited sources.
 - Backend core and plug-in setup, with rules that make every result explain itself, credit its

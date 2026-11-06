@@ -8,11 +8,14 @@ license = { file = "LICENSE" }
 authors = [{ name = "Shaz Moghaddam" }]
 classifiers = ["Private :: Do Not Upload"]
 dependencies = [
+    "fastapi>=0.115",
+    "httpx>=0.27",
     "numpy>=2",
     "pyarrow>=17",
     "pyogrio>=0.10",
     "rasterio>=1.4",
     "shapely>=2",
+    "uvicorn>=0.30",
 ]
 
 [project.optional-dependencies]
