@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { DATA_SOURCES } from "@/lib/dataSources";
 import { BrandMark } from "./BrandMark";
 import { ExternalLink } from "./ExternalLink";
 import styles from "./SiteFooter.module.css";
@@ -10,30 +11,6 @@ export const DISCLAIMER =
 const REPO = "https://github.com/Moghaddam-Labs/perilmap";
 const OGL_V3 = "https://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/";
 const OGL_V2 = "https://www.nationalarchives.gov.uk/doc/open-government-licence/version/2/";
-
-const DATA_SOURCES = [
-  {
-    label: "Rivers and sea flood zones",
-    publisher: "Environment Agency",
-    href: "https://www.data.gov.uk/dataset/943d2bbb-aa08-45d1-96cb-42556cd01d94/risk-of-flooding-from-rivers-and-sea2",
-  },
-  {
-    label: "Surface water flood zones",
-    publisher: "Environment Agency",
-    href: "https://www.data.gov.uk/dataset/risk-of-flooding-from-surface-water3",
-  },
-  {
-    label: "Summer air temperature",
-    publisher: "Greater London Authority, Bloomberg Associates and Arup",
-    href: "https://data.london.gov.uk/dataset/climate-risk-mapping",
-  },
-  {
-    label: "Ground movement",
-    publisher: "British Geological Survey",
-    href: "https://www.bgs.ac.uk/datasets/bgs-geosure-5-km-hex-grid/",
-  },
-  { label: "Postcode lookup", publisher: "postcodes.io", href: "https://postcodes.io/" },
-];
 
 const PROJECT_LINKS = [
   { label: "Source code", href: REPO },

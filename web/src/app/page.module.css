@@ -11,13 +11,6 @@
   color: var(--ink-soft);
 }
 
-.split {
-  display: grid;
-  grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
-  gap: var(--space-5) var(--space-7);
-  align-items: start;
-}
-
 .intro {
   margin-block-start: var(--space-3);
   max-width: 28rem;
@@ -71,30 +64,4 @@
 .steps p {
   margin-block-start: var(--space-2);
   color: var(--ink-soft);
-}
-
-.gaps {
-  padding: var(--space-2) var(--space-5);
-  border: 1px solid var(--line);
-  border-radius: var(--radius-panel);
-  background: var(--surface);
-  list-style: none;
-}
-
-.gaps li + li {
-  border-top: 1px solid var(--line);
-}
-
-.gaps li {
-  padding-block: var(--space-4);
-}
-
-.gaps p {
-  margin-block-start: var(--space-2);
-}
-
-@media (max-width: 48rem) {
-  .split {
-    grid-template-columns: minmax(0, 1fr);
-  }
 }

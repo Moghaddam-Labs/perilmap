@@ -133,6 +133,7 @@ export function PinSection({ found }: { found: FoundPostcode }) {
         <ResultsSection
           ref={resultsRef}
           assessment={checked.assessment}
+          postcode={found.postcode}
           stale={distanceMetres(checked.pin, pin) > 1}
         />
       )}

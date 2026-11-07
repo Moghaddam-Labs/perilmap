@@ -92,6 +92,30 @@ test("the phone hero stays short", async ({ page }) => {
   expect(hero?.height).toBeLessThan(620);
 });
 
+test("explainer cards open on click, not on hover", async ({ page }) => {
+  await page.goto("/");
+  const button = page.getByRole("button", { name: "Flood levels you can tell apart" });
+  await button.hover();
+  await expect(button).toHaveAttribute("aria-expanded", "false");
+  await button.click();
+  await expect(button).toHaveAttribute("aria-expanded", "true");
+  await expect(page.getByRole("region", { name: "Flood levels you can tell apart" })).toBeVisible();
+  await page.getByRole("heading", { name: "How it works" }).click();
+  await expect(button).toHaveAttribute("aria-expanded", "false");
+});
+
+for (const colorScheme of ["light", "dark"] as const) {
+  test(`an open explainer card passes accessibility checks in ${colorScheme}`, async ({ page }) => {
+    await page.emulateMedia({ colorScheme });
+    await page.goto("/");
+    await page.getByRole("button", { name: "A gap never looks safe" }).click();
+    const results = await new AxeBuilder({ page })
+      .withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa"])
+      .analyze();
+    expect(results.violations.map((violation) => violation.id)).toEqual([]);
+  });
+}
+
 test("an unknown page says so", async ({ page }) => {
   const response = await page.goto("/nothing-here");
   expect(response?.status()).toBe(404);
