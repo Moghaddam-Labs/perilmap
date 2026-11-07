@@ -1,0 +1,121 @@
+.cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
+  gap: var(--space-4);
+  align-items: start;
+  margin-block-start: var(--space-5);
+  padding: 0;
+  list-style: none;
+}
+
+/* Closed cards share a height, so the row lines up. An open card grows on its own. */
+.cards:not(:has([data-open])) {
+  align-items: stretch;
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-panel);
+  background: var(--surface);
+  transition:
+    transform 0.15s ease,
+    box-shadow 0.15s ease,
+    border-color 0.15s ease;
+}
+
+/* A small lift says "this opens". It only happens where there's a real pointer to hover with. */
+@media (hover: hover) {
+  .card:not([data-open]):hover {
+    border-color: var(--control-edge);
+    box-shadow: 0 6px 18px -10px rgb(18 51 43 / 0.45);
+    transform: translateY(-2px);
+  }
+}
+
+.card[data-open] {
+  border-color: var(--control-edge);
+}
+
+.heading {
+  display: flex;
+  flex: 1;
+  font-size: inherit;
+  letter-spacing: 0;
+  line-height: inherit;
+}
+
+.toggle {
+  display: grid;
+  grid-template-rows: auto auto 1fr auto;
+  gap: var(--space-2);
+  width: 100%;
+  padding: var(--space-5);
+  border: 0;
+  border-radius: var(--radius-panel);
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
+}
+
+.icon {
+  display: flex;
+  gap: var(--space-1);
+  min-height: 2rem;
+  align-items: center;
+}
+
+.icon svg {
+  width: 2rem;
+  height: 2rem;
+}
+
+.title {
+  margin-block-start: var(--space-1);
+  font-size: var(--text-lg);
+  font-weight: 750;
+  letter-spacing: -0.015em;
+  line-height: 1.2;
+}
+
+.teaser {
+  color: var(--ink-soft);
+  font-weight: 400;
+  text-wrap: pretty;
+}
+
+.more {
+  display: inline-flex;
+  align-self: end;
+  align-items: center;
+  gap: var(--space-2);
+  margin-block-start: var(--space-1);
+  color: var(--link);
+  font-weight: 700;
+}
+
+.more svg {
+  width: 0.75rem;
+  height: 0.75rem;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  transition: transform 0.15s ease;
+}
+
+.card[data-open] .more svg {
+  transform: rotate(180deg);
+}
+
+.panel {
+  padding: 0 var(--space-5) var(--space-5);
+}
+
+.panel > * + * {
+  margin-block-start: var(--space-3);
+}

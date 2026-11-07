@@ -8,16 +8,19 @@ import styles from "./ResultsSection.module.css";
 
 interface ResultsSectionProps {
   assessment: Assessment;
+  postcode: string;
   stale: boolean;
 }
 
 /** Everything the API found around the pin, or why it couldn't say. */
 export const ResultsSection = forwardRef<HTMLHeadingElement, ResultsSectionProps>(
-  function ResultsSection({ assessment, stale }, headingRef) {
+  function ResultsSection({ assessment, postcode, stale }, headingRef) {
     return (
       <section className={styles.section} aria-labelledby="results-title">
         <h2 id="results-title" ref={headingRef} tabIndex={-1}>
-          {assessment.available_here ? "What's around the pin" : "Not available here yet"}
+          {assessment.available_here
+            ? `What's around the pin near ${postcode}`
+            : "Not available here yet"}
         </h2>
 
         {stale && (

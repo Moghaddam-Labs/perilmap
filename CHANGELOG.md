@@ -8,6 +8,12 @@ All notable changes to PerilMap are recorded here. The format follows
 
 ### Changed
 
+- The flood levels and data gaps explanations are now cards in a row under "Reading the results",
+  with a new card for where the data comes from. Each opens on click or tap and closes when you click
+  elsewhere, press Escape or open another.
+- The results heading names the postcode, such as "What's around the pin near W5 4HT".
+- The footer and the new sources card share one list of data sources, which a test keeps matched to
+  the API.
 - "How it works" is now three cards in a row, matching "What PerilMap looks at".
 - The website's content security policy allows inline styles, which Bezel Charts needs. Scripts are
   still locked down.

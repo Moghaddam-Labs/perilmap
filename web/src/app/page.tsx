@@ -1,7 +1,6 @@
-import { BandKey } from "@/components/BandKey";
 import { LocationFinder } from "@/components/LocationFinder";
 import { PerilIcon } from "@/components/PerilIcon";
-import { StatusBadge } from "@/components/StatusBadge";
+import { ReadingTheResults } from "@/components/ReadingTheResults";
 import styles from "./page.module.css";
 
 const PERILS = [
@@ -29,12 +28,6 @@ const STEPS = [
     title: "Read each result",
     text: "Each one says what it means, how sure it is and what you can do next.",
   },
-];
-
-const GAPS = [
-  { status: "no_data", text: "The data has a blank here, so we can't say anything." },
-  { status: "incomplete", text: "A gap in the data is close enough to affect this result." },
-  { status: "not_available_here", text: "This spot is outside the areas PerilMap covers so far." },
 ];
 
 export default function HomePage() {
@@ -75,34 +68,7 @@ export default function HomePage() {
           </ol>
         </section>
 
-        <section className={styles.split} aria-labelledby="flood-levels">
-          <div>
-            <h2 id="flood-levels">Flood levels you can tell apart</h2>
-            <p className={styles.intro}>
-              These are the Environment Agency&apos;s own levels. Each has a pattern and a name as
-              well as a colour, so nothing depends on seeing colour. The figures are the chance of
-              flooding in any one year.
-            </p>
-          </div>
-          <BandKey />
-        </section>
-
-        <section className={styles.split} aria-labelledby="gaps">
-          <div>
-            <h2 id="gaps">A gap never looks safe</h2>
-            <p className={styles.intro}>
-              Missing data is labelled as missing, so it can&apos;t be mistaken for low risk.
-            </p>
-          </div>
-          <ul className={styles.gaps}>
-            {GAPS.map(({ status, text }) => (
-              <li key={status}>
-                <StatusBadge status={status} />
-                <p>{text}</p>
-              </li>
-            ))}
-          </ul>
-        </section>
+        <ReadingTheResults />
       </div>
     </main>
   );

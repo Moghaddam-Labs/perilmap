@@ -1,0 +1,53 @@
+.lead {
+  margin-block-start: var(--space-3);
+  color: var(--ink-soft);
+}
+
+.intro {
+  color: var(--ink-soft);
+}
+
+.rows {
+  display: grid;
+  padding: 0;
+  list-style: none;
+}
+
+.rows > li {
+  padding-block: var(--space-3);
+}
+
+.rows > li + li {
+  border-top: 1px solid var(--line);
+}
+
+.band {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.gap,
+.source {
+  display: grid;
+  justify-items: start;
+  gap: var(--space-1);
+}
+
+.source a {
+  font-weight: 700;
+}
+
+.detail {
+  display: block;
+  color: var(--ink-soft);
+  font-size: var(--text-sm);
+}
+
+.gapIcon {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}

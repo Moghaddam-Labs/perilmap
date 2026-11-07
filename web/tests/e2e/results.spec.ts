@@ -49,7 +49,10 @@ test("checking a location shows a card for each peril", async ({ page }) => {
     status: 200,
     body: fixture("thames_wapping"),
   });
-  const heading = page.getByRole("heading", { level: 2, name: "What's around the pin" });
+  const heading = page.getByRole("heading", {
+    level: 2,
+    name: "What's around the pin near E1W 1AA",
+  });
   await expect(heading).toBeFocused();
   for (const title of [
     "Flooding from rivers and sea",
