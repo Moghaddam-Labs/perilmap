@@ -8,6 +8,9 @@ All notable changes to PerilMap are recorded here. The format follows
 
 ### Changed
 
+- "How it works" is now three cards in a row, matching "What PerilMap looks at".
+- The website's content security policy allows inline styles, which Bezel Charts needs. Scripts are
+  still locked down.
 - The website's main colour is now ink green, across the site, its icon, the README banner and the
   social preview.
 - The home page has a slim top bar, room for postcode search at the top, a shorter header on phones,
@@ -18,6 +21,10 @@ All notable changes to PerilMap are recorded here. The format follows
 
 ### Added
 
+- Result cards for each peril at the pin, using the API's own wording: the summary, what it means,
+  how sure it is, what you can do, links to official guidance and the data's source. Flood cards list
+  the nearest zone of each level, and the heat card shows where the area sits in London's range with
+  a Bezel Charts gauge. Results say when they're out of date because the pin has moved.
 - Postcode search on the home page, using the API, with clear messages for every kind of problem.
 - A map to put a pin on the home, which can be moved by clicking, dragging or the arrow keys, and
   says in words where the pin is. It shows the edge of Greater London, and still lets people carry

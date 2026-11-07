@@ -90,13 +90,6 @@ test("clicking the map moves the pin there", async ({ page }) => {
   ).toBeVisible();
 });
 
-test("checking a location says results are coming", async ({ page }) => {
-  await standIns(page, WESTMINSTER);
-  await findPostcode(page, "SW1A 2AA");
-  await page.getByRole("button", { name: "Check this location" }).click();
-  await expect(page.getByText("Results are on their way")).toBeVisible();
-});
-
 test("a postcode outside London is explained, and no map opens", async ({ page }) => {
   await standIns(page, {
     status: 200,

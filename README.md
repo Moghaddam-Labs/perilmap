@@ -105,6 +105,9 @@ Then create `web/.env.local` with this line, and restart `npm run dev`:
 NEXT_PUBLIC_PERILMAP_API_URL=http://127.0.0.1:8000
 ```
 
+Charts are drawn by [Bezel Charts](https://github.com/ShazMoghaddam/bezel-charts), pinned to a
+release tag in `web/package.json`. Every chart's answer is also written out in words on its card.
+
 The map comes from [OpenFreeMap](https://openfreemap.org/), which is free and needs no account. Its
 worker file is copied into `web/public/vendor/` each time the site starts or builds.
 

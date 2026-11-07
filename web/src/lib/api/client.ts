@@ -4,7 +4,8 @@
  */
 
 import { apiOrigin } from "@/lib/config";
-import type { PostcodeResult } from "./types";
+import type { Position } from "@/lib/geo";
+import type { Assessment, PostcodeResult } from "./types";
 
 export type ApiProblem = "invalid" | "not_found" | "busy" | "unavailable";
 
@@ -66,6 +67,30 @@ function isPostcodeResult(value: unknown): value is PostcodeResult {
 export async function lookupPostcode(postcode: string, signal?: AbortSignal) {
   const result = await postJson("/v1/postcodes/lookup", { postcode }, signal);
   if (!isPostcodeResult(result)) {
+    throw new ApiError("unavailable");
+  }
+  return result;
+}
+
+function isAssessment(value: unknown): value is Assessment {
+  const result = value as Partial<Assessment> | null;
+  return (
+    typeof result?.available_here === "boolean" &&
+    typeof result.disclaimer === "string" &&
+    Array.isArray(result.results) &&
+    Array.isArray(result.not_covered)
+  );
+}
+
+/** Asks the API what's around a spot. About 10 cm is far more exact than any of the data. */
+export async function assessLocation({ latitude, longitude }: Position, signal?: AbortSignal) {
+  const round = (degrees: number) => Math.round(degrees * 1e6) / 1e6;
+  const result = await postJson(
+    "/v1/assessments",
+    { latitude: round(latitude), longitude: round(longitude) },
+    signal,
+  );
+  if (!isAssessment(result)) {
     throw new ApiError("unavailable");
   }
   return result;

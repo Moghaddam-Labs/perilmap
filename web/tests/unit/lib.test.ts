@@ -43,8 +43,8 @@ describe("contentSecurityPolicy", () => {
   const policy = contentSecurityPolicy({ nonce: "abc", apiOrigin: "https://api.example.com" });
 
   it("only lets the site's own scripts run", () => {
-    expect(policy).toContain("script-src 'self' 'nonce-abc' 'strict-dynamic'");
-    expect(policy).not.toContain("unsafe-inline");
+    const scripts = policy.split("; ").find((directive) => directive.startsWith("script-src"));
+    expect(scripts).toBe("script-src 'self' 'nonce-abc' 'strict-dynamic'");
     expect(policy).not.toContain("unsafe-eval");
   });
 
