@@ -1,0 +1,48 @@
+.table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.caption {
+  padding-block-end: var(--space-2);
+  color: var(--ink-soft);
+  font-size: var(--text-sm);
+  text-align: start;
+}
+
+.table tr + tr {
+  border-top: 1px solid var(--line);
+}
+
+.table th,
+.table td {
+  padding-block: var(--space-2);
+  text-align: start;
+  vertical-align: middle;
+}
+
+.band {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.band svg {
+  width: 1.5rem;
+  height: 1.5rem;
+}
+
+.table td {
+  padding-inline-start: var(--space-4);
+}
+
+/* Being on a zone gets the same weight as its name, so it isn't lost in the list. */
+.table tr[data-near] td {
+  font-weight: 700;
+}
+
+.none {
+  color: var(--ink-soft);
+}

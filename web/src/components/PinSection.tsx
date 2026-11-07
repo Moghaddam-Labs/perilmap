@@ -2,10 +2,13 @@
 
 import dynamic from "next/dynamic";
 import { useEffect, useRef, useState } from "react";
-import { describePin, isInsideLondon, type Position } from "@/lib/geo";
+import { ApiError, assessLocation, type ApiProblem } from "@/lib/api/client";
+import type { Assessment } from "@/lib/api/types";
+import { describePin, distanceMetres, isInsideLondon, type Position } from "@/lib/geo";
 import { Button } from "./Button";
 import { Notice } from "./Notice";
 import type { FoundPostcode } from "./PostcodeSearch";
+import { ResultsSection } from "./ResultsSection";
 import styles from "./PinSection.module.css";
 
 const LocationMap = dynamic(() => import("./LocationMap").then((module) => module.LocationMap), {
@@ -13,16 +16,56 @@ const LocationMap = dynamic(() => import("./LocationMap").then((module) => modul
   loading: () => <div className={styles.loading}>Loading the map</div>,
 });
 
-interface PinSectionProps {
-  found: FoundPostcode;
-  onConfirm: (pin: Position) => void;
+const PROBLEMS: Record<ApiProblem, string> = {
+  invalid: "That location couldn't be checked. Move the pin and try again.",
+  not_found: "That location couldn't be checked. Move the pin and try again.",
+  busy: "There have been too many checks in a short time. Wait a minute, then try again.",
+  unavailable: "Results aren't available right now. Try again in a few minutes.",
+};
+
+interface Checked {
+  pin: Position;
+  assessment: Assessment;
 }
 
-/** The second step: putting the pin on the home itself. */
-export function PinSection({ found, onConfirm }: PinSectionProps) {
+/** The second and third steps: putting the pin on the home, then checking what's around it. */
+export function PinSection({ found }: { found: FoundPostcode }) {
   const headingRef = useRef<HTMLHeadingElement>(null);
+  const resultsRef = useRef<HTMLHeadingElement>(null);
+  const requestRef = useRef<AbortController | null>(null);
   const [pin, setPin] = useState<Position>(found);
   const [mapUnavailable, setMapUnavailable] = useState(false);
+  const [checking, setChecking] = useState(false);
+  const [problem, setProblem] = useState<string | null>(null);
+  const [checked, setChecked] = useState<Checked | null>(null);
+
+  useEffect(() => () => requestRef.current?.abort(), []);
+
+  // Results get their own heading, so focus moves there once they arrive.
+  useEffect(() => {
+    if (checked) {
+      resultsRef.current?.focus();
+      resultsRef.current?.scrollIntoView({ block: "start" });
+    }
+  }, [checked]);
+
+  async function check() {
+    requestRef.current?.abort();
+    const request = new AbortController();
+    requestRef.current = request;
+    const spot = pin;
+    setProblem(null);
+    setChecking(true);
+    try {
+      const assessment = await assessLocation(spot, request.signal);
+      setChecked({ pin: spot, assessment });
+    } catch (caught) {
+      if (request.signal.aborted) return;
+      setProblem(PROBLEMS[caught instanceof ApiError ? caught.problem : "unavailable"]);
+    } finally {
+      if (requestRef.current === request) setChecking(false);
+    }
+  }
 
   useEffect(() => {
     headingRef.current?.focus();
@@ -69,11 +112,30 @@ export function PinSection({ found, onConfirm }: PinSectionProps) {
       </p>
 
       <div className={styles.actions}>
-        <Button onClick={() => onConfirm(pin)}>Check this location</Button>
+        <Button onClick={check} disabled={checking}>
+          {checking ? "Checking" : "Check this location"}
+        </Button>
         <Button variant="secondary" onClick={() => setPin(found)}>
           Move the pin back to the centre
         </Button>
       </div>
+      <p className="visually-hidden" role="status">
+        {checking ? "Checking this location" : ""}
+      </p>
+
+      {problem && (
+        <Notice title="We couldn't check this location" tone="error">
+          {problem}
+        </Notice>
+      )}
+
+      {checked && (
+        <ResultsSection
+          ref={resultsRef}
+          assessment={checked.assessment}
+          stale={distanceMetres(checked.pin, pin) > 1}
+        />
+      )}
     </section>
   );
 }

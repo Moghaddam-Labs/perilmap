@@ -6,31 +6,6 @@
   padding: var(--space-7) var(--gutter) var(--space-8);
 }
 
-.perils {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
-  gap: var(--space-4);
-  margin-block-start: var(--space-5);
-  padding: 0;
-  list-style: none;
-}
-
-.perils li {
-  padding: var(--space-5);
-  border: 1px solid var(--line);
-  border-radius: var(--radius-panel);
-  background: var(--surface);
-}
-
-.perils h3 {
-  margin-block-start: var(--space-3);
-}
-
-.perils p {
-  margin-block-start: var(--space-2);
-  color: var(--ink-soft);
-}
-
 .note {
   margin-block-start: var(--space-4);
   color: var(--ink-soft);
@@ -49,13 +24,22 @@
   color: var(--ink-soft);
 }
 
-.steps,
-.gaps {
-  padding: var(--space-2) var(--space-5);
+.perils,
+.steps {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
+  gap: var(--space-4);
+  margin-block-start: var(--space-5);
+  padding: 0;
+  list-style: none;
+}
+
+.perils li,
+.steps li {
+  padding: var(--space-5);
   border: 1px solid var(--line);
   border-radius: var(--radius-panel);
   background: var(--surface);
-  list-style: none;
 }
 
 .steps {
@@ -63,16 +47,11 @@
 }
 
 .steps li {
-  position: relative;
-  padding-block: var(--space-4);
-  padding-inline-start: 3rem;
   counter-increment: step;
 }
 
 /* The steps really are a sequence, so they're numbered. */
 .steps li::before {
-  position: absolute;
-  inset-inline-start: 0;
   display: grid;
   place-items: center;
   width: 2rem;
@@ -83,17 +62,25 @@
   font-weight: 700;
 }
 
+.perils h3,
 .steps h3 {
-  font-size: var(--text-md);
-  letter-spacing: 0;
-  line-height: 1.55;
+  margin-block-start: var(--space-3);
 }
 
+.perils p,
 .steps p {
+  margin-block-start: var(--space-2);
   color: var(--ink-soft);
 }
 
-.steps li + li,
+.gaps {
+  padding: var(--space-2) var(--space-5);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-panel);
+  background: var(--surface);
+  list-style: none;
+}
+
 .gaps li + li {
   border-top: 1px solid var(--line);
 }

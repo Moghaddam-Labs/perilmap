@@ -1,0 +1,8 @@
+.gauge {
+  max-width: 22rem;
+  min-height: 150px;
+}
+
+.gauge bezel-gauge {
+  display: block;
+}

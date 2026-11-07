@@ -60,13 +60,11 @@ export default function HomePage() {
           </p>
         </section>
 
-        <section id="how-it-works" className={styles.split} aria-labelledby="how-it-works-title">
-          <div>
-            <h2 id="how-it-works-title">How it works</h2>
-            <p className={styles.intro}>
-              You don&apos;t need an account, and your search isn&apos;t saved.
-            </p>
-          </div>
+        <section id="how-it-works" aria-labelledby="how-it-works-title">
+          <h2 id="how-it-works-title">How it works</h2>
+          <p className={styles.intro}>
+            You don&apos;t need an account, and your search isn&apos;t saved.
+          </p>
           <ol className={styles.steps}>
             {STEPS.map(({ title, text }) => (
               <li key={title}>

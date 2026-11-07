@@ -1,0 +1,118 @@
+.card {
+  display: grid;
+  align-content: start;
+  gap: var(--space-4);
+  min-width: 0;
+  padding: var(--space-5);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-panel);
+  background: var(--surface);
+}
+
+.header {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: center;
+  gap: var(--space-2) var(--space-3);
+}
+
+.header > span {
+  grid-column: 1 / -1;
+  justify-self: start;
+}
+
+.summary {
+  font-size: 1.1875rem;
+  font-weight: 650;
+  line-height: 1.4;
+}
+
+.comparison {
+  display: grid;
+  gap: var(--space-2);
+}
+
+.note {
+  color: var(--ink-soft);
+  font-size: var(--text-sm);
+}
+
+.part {
+  display: grid;
+  gap: var(--space-1);
+  padding-block-start: var(--space-4);
+  border-top: 1px solid var(--line);
+}
+
+.part h4 {
+  font-size: var(--text-md);
+  line-height: 1.55;
+}
+
+.part p,
+.actions,
+.caveats {
+  color: var(--ink-soft);
+}
+
+.actions,
+.caveats {
+  display: grid;
+  gap: var(--space-1);
+  padding-inline-start: 1.25rem;
+}
+
+.links {
+  display: grid;
+  gap: var(--space-2);
+  margin-block-start: var(--space-2);
+  padding: 0;
+  list-style: none;
+  font-weight: 650;
+}
+
+.sources {
+  padding-block-start: var(--space-3);
+  border-top: 1px solid var(--line);
+  font-size: var(--text-sm);
+}
+
+.sources summary {
+  display: inline-flex;
+  min-height: 2.75rem;
+  align-items: center;
+  gap: var(--space-2);
+  font-weight: 700;
+  cursor: pointer;
+}
+
+/* A chevron that turns when the details open, so the line reads as something to press. */
+.sources summary::before {
+  width: 0.5rem;
+  height: 0.5rem;
+  border-block-end: 2px solid currentColor;
+  border-inline-end: 2px solid currentColor;
+  content: "";
+  transform: rotate(-45deg);
+  transition: transform 0.15s ease;
+}
+
+.sources[open] summary::before {
+  transform: rotate(45deg);
+}
+
+.source {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: var(--space-1) var(--space-4);
+  margin-block-start: var(--space-2);
+}
+
+.source dt {
+  font-weight: 700;
+}
+
+.source dd {
+  color: var(--ink-soft);
+  overflow-wrap: anywhere;
+}

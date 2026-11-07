@@ -13,15 +13,17 @@ export function contentSecurityPolicy({
   apiOrigin,
   development = false,
 }: ContentSecurityPolicyOptions) {
-  // A nonce would switch off 'unsafe-inline', and the dev server's live reload needs it.
+  // The dev server's live reload needs eval and a websocket.
   const developmentOnly = development
-    ? { script: ["'unsafe-eval'"], style: ["'unsafe-inline'"], connect: ["ws:"] }
-    : { script: [], style: [], connect: [] };
+    ? { script: ["'unsafe-eval'"], connect: ["ws:"] }
+    : { script: [], connect: [] };
 
   const directives: Record<string, string[]> = {
     "default-src": ["'self'"],
     "script-src": ["'self'", `'nonce-${nonce}'`, "'strict-dynamic'", ...developmentOnly.script],
-    "style-src": ["'self'", ...developmentOnly.style],
+    // Styles may be inline, because Bezel Charts draws its charts with inline styles. Scripts stay
+    // locked to the nonce, which is what stops injected code from running.
+    "style-src": ["'self'", "'unsafe-inline'"],
     // The map draws its images from data it has already downloaded.
     "img-src": ["'self'", "data:", "blob:"],
     "font-src": ["'self'"],
