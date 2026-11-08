@@ -29,6 +29,22 @@ function prefersDark() {
   return window.matchMedia("(prefers-color-scheme: dark)").matches;
 }
 
+/** Printing forces the light colours, so the map's boundary line follows the page, not the device. */
+function lightPage() {
+  return document.documentElement.getAttribute("data-theme") === "light" || !prefersDark();
+}
+
+/** Waits until the map has finished drawing, or gives up after a few seconds. */
+function whenIdle(map: MapLibreMap, timeoutMs = 4000) {
+  return new Promise<void>((resolve) => {
+    const timer = setTimeout(resolve, timeoutMs);
+    map.once("idle", () => {
+      clearTimeout(timer);
+      resolve();
+    });
+  });
+}
+
 function svgElement(tag: string, attributes: Record<string, string>) {
   const element = document.createElementNS(SVG, tag);
   for (const [name, value] of Object.entries(attributes)) {
@@ -69,7 +85,7 @@ function addBoundary(map: MapLibreMap) {
       type: "line",
       source: BOUNDARY,
       paint: {
-        "line-color": prefersDark() ? "#eef6f2" : "#12332b",
+        "line-color": lightPage() ? "#12332b" : "#eef6f2",
         "line-width": 2,
         "line-dasharray": [2, 2],
       },
@@ -118,6 +134,7 @@ export function LocationMap({ start, pin, onPinChange, onUnavailable }: Location
   const mapRef = useRef<MapLibreMap | null>(null);
   const markerRef = useRef<Marker | null>(null);
   const snapshotRef = useRef<HTMLImageElement>(null);
+  const styleRef = useRef<string>(MAP_STYLES.light);
   const callbacks = useRef({ onPinChange, onUnavailable });
   useEffect(() => {
     callbacks.current = { onPinChange, onUnavailable };
@@ -142,7 +159,7 @@ export function LocationMap({ start, pin, onPinChange, onUnavailable }: Location
       try {
         map = new maplibre.Map({
           container: containerRef.current,
-          style: prefersDark() ? MAP_STYLES.dark : MAP_STYLES.light,
+          style: (styleRef.current = prefersDark() ? MAP_STYLES.dark : MAP_STYLES.light),
           center: [start.longitude, start.latitude],
           zoom: STREET_ZOOM,
           minZoom: 9,
@@ -206,7 +223,10 @@ export function LocationMap({ start, pin, onPinChange, onUnavailable }: Location
       });
 
       const scheme = window.matchMedia("(prefers-color-scheme: dark)");
-      const changeScheme = () => map.setStyle(scheme.matches ? MAP_STYLES.dark : MAP_STYLES.light);
+      const changeScheme = () => {
+        styleRef.current = scheme.matches ? MAP_STYLES.dark : MAP_STYLES.light;
+        map.setStyle(styleRef.current);
+      };
       scheme.addEventListener("change", changeScheme);
 
       cleanup = () => {
@@ -237,17 +257,29 @@ export function LocationMap({ start, pin, onPinChange, onUnavailable }: Location
 
   useEffect(
     () =>
-      onPrintPrepare(() => {
+      onPrintPrepare(async ({ canWait }) => {
         const map = mapRef.current;
         const marker = markerRef.current;
         const image = snapshotRef.current;
         if (!map || !marker || !image) return;
+        let undo: (() => void) | undefined;
+        // A dark map wastes ink and is hard to read on paper, so the print button switches to the
+        // light map first, waits for it to draw, and switches back afterwards.
+        if (canWait && styleRef.current === MAP_STYLES.dark) {
+          const drawn = whenIdle(map);
+          map.setStyle(MAP_STYLES.light);
+          await drawn;
+          undo = () => {
+            if (styleRef.current === MAP_STYLES.dark) map.setStyle(MAP_STYLES.dark);
+          };
+        }
         try {
           const source = snapshot(map, marker);
           if (source) image.src = source;
         } catch {
           // Without an image, the printout still has the location in words.
         }
+        return undo;
       }),
     [],
   );
