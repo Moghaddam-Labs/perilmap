@@ -94,12 +94,12 @@ test("the phone hero stays short", async ({ page }) => {
 
 test("explainer cards open on click, not on hover", async ({ page }) => {
   await page.goto("/");
-  const button = page.getByRole("button", { name: "Flood levels you can tell apart" });
+  const button = page.getByRole("button", { name: "Telling flood levels apart" });
   await button.hover();
   await expect(button).toHaveAttribute("aria-expanded", "false");
   await button.click();
   await expect(button).toHaveAttribute("aria-expanded", "true");
-  await expect(page.getByRole("region", { name: "Flood levels you can tell apart" })).toBeVisible();
+  await expect(page.getByRole("region", { name: "Telling flood levels apart" })).toBeVisible();
   await page.getByRole("heading", { name: "How it works" }).click();
   await expect(button).toHaveAttribute("aria-expanded", "false");
 });
@@ -113,6 +113,24 @@ for (const colorScheme of ["light", "dark"] as const) {
       .withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa"])
       .analyze();
     expect(results.violations.map((violation) => violation.id)).toEqual([]);
+  });
+}
+
+for (const [width, kind] of [
+  [1280, "vertical"],
+  [390, "horizontal"],
+] as const) {
+  test(`the borough chart shows ${kind} stacked bars at ${width}px`, async ({ page }) => {
+    await page.setViewportSize({ width, height: 900 });
+    await page.goto("/");
+    const visible = page.locator("bezel-bars").locator("visible=true");
+    await expect(visible).toHaveCount(1);
+    await visible.scrollIntoViewIfNeeded();
+    expect(await visible.getAttribute("horizontal")).toBe(kind === "horizontal" ? "" : null);
+    const summary = await visible.evaluate(
+      (element) => element.shadowRoot?.querySelector("svg")?.getAttribute("aria-label") ?? "",
+    );
+    expect(summary).toContain("2 series stacked across 33 groups");
   });
 }
 

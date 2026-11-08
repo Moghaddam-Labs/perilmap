@@ -85,14 +85,14 @@ export function SiteFooter() {
             Flood data and the home page map: © Environment Agency copyright and/or database right
             2025. All rights reserved. Temperature data: Greater London Authority, using Arup&apos;s
             UHeat model. Ground movement information: BGS © UKRI. Contains OS data © Crown copyright
-            2020. London boundary: contains National Statistics data and Ordnance Survey data ©
-            Crown copyright and database right 2015. Map: OpenFreeMap © OpenMapTiles, data from
-            OpenStreetMap © OpenStreetMap contributors.
+            2020. London and borough boundaries: contain National Statistics data and Ordnance
+            Survey data © Crown copyright and database right 2015. Map: OpenFreeMap © OpenMapTiles,
+            data from OpenStreetMap © OpenStreetMap contributors.
           </p>
           <p>
             Used under the Open Government Licence:{" "}
             <ExternalLink href={OGL_V3}>version 3.0</ExternalLink> for flood and temperature data,
-            and <ExternalLink href={OGL_V2}>version 2.0</ExternalLink> for the London boundary.
+            and <ExternalLink href={OGL_V2}>version 2.0</ExternalLink> for the boundaries.
           </p>
         </div>
 

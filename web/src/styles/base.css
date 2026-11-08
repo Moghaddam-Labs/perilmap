@@ -65,6 +65,36 @@ a:hover {
   outline-offset: 2px;
 }
 
+/* Every expandable line gets the same chevron, so it reads as something to press. */
+summary {
+  display: inline-flex;
+  min-height: 2.75rem;
+  align-items: center;
+  gap: var(--space-2);
+  font-weight: 700;
+  list-style: none;
+  cursor: pointer;
+}
+
+summary::-webkit-details-marker {
+  display: none;
+}
+
+summary::before {
+  width: 0.5rem;
+  height: 0.5rem;
+  flex: none;
+  border-block-end: 2px solid currentColor;
+  border-inline-end: 2px solid currentColor;
+  content: "";
+  transform: rotate(-45deg);
+  transition: transform 0.15s ease;
+}
+
+details[open] > summary::before {
+  transform: rotate(45deg);
+}
+
 img,
 svg {
   display: block;

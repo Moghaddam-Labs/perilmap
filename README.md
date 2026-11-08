@@ -114,6 +114,10 @@ worker file is copied into `web/public/vendor/` each time the site starts or bui
 The website draws London's boundary from a small copy made by `scripts/export_london_boundary.py`.
 Run it again only if the boundary in `perilmap/regions/london/reference/` changes.
 
+The borough chart's figures are worked out by `scripts/export_borough_flood.py` from the rivers and sea
+grid and the London Datastore's borough boundaries, and saved to `web/src/lib/borough-flood.json`.
+Run it again when the flood data is updated. The script's notes say where to get the boundaries.
+
 The site follows WCAG 2.2 AA. Flood levels always have a name and a pattern as well as a colour, and
 coral is only ever a brand accent, so it never signals risk. A test checks every colour pair in
 light and dark.
@@ -215,7 +219,7 @@ npm run test:e2e
 | [Climate Risk Mapping, mean air temperature](https://data.london.gov.uk/dataset/climate-risk-mapping) | Greater London Authority, Bloomberg Associates and Arup | [Open Government Licence v3.0](https://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/) |
 | [GeoSure 5 km hex grid, shrink-swell](https://www.bgs.ac.uk/datasets/bgs-geosure-5-km-hex-grid/) | British Geological Survey | Open Government Licence |
 | [Postcode lookup](https://postcodes.io/) | postcodes.io | Credited in each lookup reply |
-| [Greater London boundary](https://data.london.gov.uk/dataset/statistical-gis-boundary-files-london) | Greater London Authority | [Open Government Licence v2.0](https://www.nationalarchives.gov.uk/doc/open-government-licence/version/2/) |
+| [Greater London and borough boundaries](https://data.london.gov.uk/dataset/statistical-gis-boundary-files-london) | Greater London Authority | [Open Government Licence v2.0](https://www.nationalarchives.gov.uk/doc/open-government-licence/version/2/) |
 
 © Environment Agency copyright and/or database right 2025. All rights reserved.
 

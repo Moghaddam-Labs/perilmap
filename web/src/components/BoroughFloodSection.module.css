@@ -1,0 +1,92 @@
+.section {
+  display: grid;
+  gap: var(--space-5);
+}
+
+/* The explanation sits above the chart, in two columns on wide screens. */
+.text {
+  display: grid;
+  grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+  gap: var(--space-3) var(--space-7);
+  align-items: start;
+  color: var(--ink-soft);
+}
+
+.intro,
+.details {
+  display: grid;
+  gap: var(--space-3);
+}
+
+.text h2 {
+  color: var(--ink);
+}
+
+.lead {
+  color: var(--ink);
+  font-size: 1.1875rem;
+  font-weight: 650;
+  line-height: 1.4;
+}
+
+.note {
+  font-size: var(--text-sm);
+}
+
+.figure {
+  display: grid;
+  gap: var(--space-3);
+  min-width: 0;
+  padding: var(--space-4) var(--space-4) var(--space-3);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-panel);
+  background: var(--surface);
+}
+
+.table {
+  padding-block-start: var(--space-2);
+  border-top: 1px solid var(--line);
+  font-size: var(--text-sm);
+}
+
+.table summary {
+  padding-inline: var(--space-2);
+}
+
+.table table {
+  width: 100%;
+  margin-block-start: var(--space-2);
+  border-collapse: collapse;
+}
+
+.table th,
+.table td {
+  padding: var(--space-1) var(--space-2);
+  text-align: start;
+}
+
+.table td {
+  font-variant-numeric: tabular-nums;
+  text-align: end;
+}
+
+.table thead th:not(:first-child) {
+  text-align: end;
+}
+
+.table tbody tr + tr {
+  border-top: 1px solid var(--line);
+}
+
+@media (max-width: 56rem) {
+  .text {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/* More room for long borough names on phones */
+@media (max-width: 30rem) {
+  .figure {
+    padding-inline: var(--space-1);
+  }
+}

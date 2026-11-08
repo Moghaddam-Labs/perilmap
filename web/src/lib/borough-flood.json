@@ -1,0 +1,203 @@
+{
+  "note": "Made by scripts/export_borough_flood.py. Don't edit by hand.",
+  "boroughs": [
+    {
+      "name": "Barking and Dagenham",
+      "code": "E09000002",
+      "low_or_higher_percent": 18.4,
+      "very_low_percent": 6.6
+    },
+    {
+      "name": "Newham",
+      "code": "E09000025",
+      "low_or_higher_percent": 16.6,
+      "very_low_percent": 24.8
+    },
+    {
+      "name": "Richmond upon Thames",
+      "code": "E09000027",
+      "low_or_higher_percent": 16.3,
+      "very_low_percent": 6.7
+    },
+    {
+      "name": "Kingston upon Thames",
+      "code": "E09000021",
+      "low_or_higher_percent": 11.0,
+      "very_low_percent": 0.0
+    },
+    {
+      "name": "Waltham Forest",
+      "code": "E09000031",
+      "low_or_higher_percent": 10.2,
+      "very_low_percent": 2.6
+    },
+    {
+      "name": "Merton",
+      "code": "E09000024",
+      "low_or_higher_percent": 10.1,
+      "very_low_percent": 0.0
+    },
+    {
+      "name": "Hillingdon",
+      "code": "E09000017",
+      "low_or_higher_percent": 10.0,
+      "very_low_percent": 0.4
+    },
+    {
+      "name": "Enfield",
+      "code": "E09000010",
+      "low_or_higher_percent": 9.3,
+      "very_low_percent": 3.2
+    },
+    {
+      "name": "Havering",
+      "code": "E09000016",
+      "low_or_higher_percent": 8.0,
+      "very_low_percent": 4.1
+    },
+    {
+      "name": "Bexley",
+      "code": "E09000004",
+      "low_or_higher_percent": 7.2,
+      "very_low_percent": 11.7
+    },
+    {
+      "name": "Redbridge",
+      "code": "E09000026",
+      "low_or_higher_percent": 6.9,
+      "very_low_percent": 0.2
+    },
+    {
+      "name": "Wandsworth",
+      "code": "E09000032",
+      "low_or_higher_percent": 6.2,
+      "very_low_percent": 9.3
+    },
+    {
+      "name": "Brent",
+      "code": "E09000005",
+      "low_or_higher_percent": 5.7,
+      "very_low_percent": 0.0
+    },
+    {
+      "name": "Lewisham",
+      "code": "E09000023",
+      "low_or_higher_percent": 5.4,
+      "very_low_percent": 5.5
+    },
+    {
+      "name": "Ealing",
+      "code": "E09000009",
+      "low_or_higher_percent": 5.1,
+      "very_low_percent": 0.1
+    },
+    {
+      "name": "Haringey",
+      "code": "E09000014",
+      "low_or_higher_percent": 4.4,
+      "very_low_percent": 5.5
+    },
+    {
+      "name": "Barnet",
+      "code": "E09000003",
+      "low_or_higher_percent": 4.3,
+      "very_low_percent": 0.1
+    },
+    {
+      "name": "Hackney",
+      "code": "E09000012",
+      "low_or_higher_percent": 4.3,
+      "very_low_percent": 2.5
+    },
+    {
+      "name": "Harrow",
+      "code": "E09000015",
+      "low_or_higher_percent": 4.2,
+      "very_low_percent": 0.1
+    },
+    {
+      "name": "Greenwich",
+      "code": "E09000011",
+      "low_or_higher_percent": 3.7,
+      "very_low_percent": 13.9
+    },
+    {
+      "name": "Hounslow",
+      "code": "E09000018",
+      "low_or_higher_percent": 3.5,
+      "very_low_percent": 3.3
+    },
+    {
+      "name": "Sutton",
+      "code": "E09000029",
+      "low_or_higher_percent": 3.3,
+      "very_low_percent": 0.0
+    },
+    {
+      "name": "Bromley",
+      "code": "E09000006",
+      "low_or_higher_percent": 2.4,
+      "very_low_percent": 0.0
+    },
+    {
+      "name": "Tower Hamlets",
+      "code": "E09000030",
+      "low_or_higher_percent": 2.1,
+      "very_low_percent": 19.5
+    },
+    {
+      "name": "Croydon",
+      "code": "E09000008",
+      "low_or_higher_percent": 1.9,
+      "very_low_percent": 0.0
+    },
+    {
+      "name": "Lambeth",
+      "code": "E09000022",
+      "low_or_higher_percent": 0.9,
+      "very_low_percent": 9.6
+    },
+    {
+      "name": "City of London",
+      "code": "E09000001",
+      "low_or_higher_percent": 0.5,
+      "very_low_percent": 4.5
+    },
+    {
+      "name": "Hammersmith and Fulham",
+      "code": "E09000013",
+      "low_or_higher_percent": 0.1,
+      "very_low_percent": 15.5
+    },
+    {
+      "name": "Southwark",
+      "code": "E09000028",
+      "low_or_higher_percent": 0.1,
+      "very_low_percent": 33.0
+    },
+    {
+      "name": "Westminster",
+      "code": "E09000033",
+      "low_or_higher_percent": 0.1,
+      "very_low_percent": 10.0
+    },
+    {
+      "name": "Camden",
+      "code": "E09000007",
+      "low_or_higher_percent": 0.0,
+      "very_low_percent": 0.0
+    },
+    {
+      "name": "Islington",
+      "code": "E09000019",
+      "low_or_higher_percent": 0.0,
+      "very_low_percent": 0.0
+    },
+    {
+      "name": "Kensington and Chelsea",
+      "code": "E09000020",
+      "low_or_higher_percent": 0.0,
+      "very_low_percent": 2.3
+    }
+  ]
+}

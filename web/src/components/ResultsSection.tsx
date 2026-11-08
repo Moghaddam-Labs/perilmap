@@ -12,6 +12,30 @@ interface ResultsSectionProps {
   stale: boolean;
 }
 
+/** How recent each result's data is, so freshness shows without opening a card. */
+function DataDates({ assessment }: { assessment: Assessment }) {
+  const dates = assessment.results.flatMap((result) =>
+    result.sources
+      .filter((source) => source.last_updated)
+      .slice(0, 1)
+      .map((source) => ({ title: result.title, updated: source.last_updated })),
+  );
+  if (dates.length === 0) return null;
+  return (
+    <div className={styles.dates}>
+      <h3>How recent the data is</h3>
+      <dl>
+        {dates.map(({ title, updated }) => (
+          <div key={title}>
+            <dt>{title}</dt>
+            <dd>{updated}</dd>
+          </div>
+        ))}
+      </dl>
+    </div>
+  );
+}
+
 /** Everything the API found around the pin, or why it couldn't say. */
 export const ResultsSection = forwardRef<HTMLHeadingElement, ResultsSectionProps>(
   function ResultsSection({ assessment, postcode, stale }, headingRef) {
@@ -38,6 +62,7 @@ export const ResultsSection = forwardRef<HTMLHeadingElement, ResultsSectionProps
         ) : (
           <>
             <p className={styles.disclaimer}>{assessment.disclaimer}</p>
+            <DataDates assessment={assessment} />
             <div className={styles.grid}>
               {assessment.results.map((result) => (
                 <ResultCard key={result.peril_id} result={result} />

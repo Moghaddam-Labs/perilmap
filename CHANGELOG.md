@@ -8,6 +8,9 @@ All notable changes to PerilMap are recorded here. The format follows
 
 ### Changed
 
+- Bezel Charts is updated to v1.1.0, for its stacked bars and slanted labels.
+- Every expandable line on the site shares one open and close arrow.
+- "Flood levels you can tell apart" is now "Telling flood levels apart", so it fits on one line.
 - The flood levels and data gaps explanations are now cards in a row under "Reading the results",
   with a new card for where the data comes from. Each opens on click or tap and closes when you click
   elsewhere, press Escape or open another.
@@ -27,6 +30,11 @@ All notable changes to PerilMap are recorded here. The format follows
 
 ### Added
 
+- A permanent chart on the home page of how much of each London borough is in a rivers and sea
+  flood zone, stacked into Low or higher and Very Low. It uses vertical bars with slanted borough
+  names on wide screens and horizontal bars on phones, with the figures as a table and a note on why
+  a small share doesn't mean no risk. Worked out by `scripts/export_borough_flood.py`.
+- A line under the results heading saying how recent each result's data is.
 - Result cards for each peril at the pin, using the API's own wording: the summary, what it means,
   how sure it is, what you can do, links to official guidance and the data's source. Flood cards list
   the nearest zone of each level, and the heat card shows where the area sits in London's range with
