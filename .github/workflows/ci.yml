@@ -4,6 +4,8 @@ on:
   push:
     branches: [main]
   pull_request:
+  # Lets CI be started by hand from the Actions tab, for when GitHub misses a push.
+  workflow_dispatch:
 
 permissions:
   contents: read
