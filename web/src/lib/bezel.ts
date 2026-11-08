@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { THEME_EVENT } from "./print";
 
 /** Bezel Charts uses browser-only features, so it loads in the browser, not on the server. */
 export function useBezelCharts() {
@@ -21,7 +22,11 @@ export function useSurfaceColour() {
     update();
     const scheme = window.matchMedia?.("(prefers-color-scheme: dark)");
     scheme?.addEventListener("change", update);
-    return () => scheme?.removeEventListener("change", update);
+    window.addEventListener(THEME_EVENT, update);
+    return () => {
+      scheme?.removeEventListener("change", update);
+      window.removeEventListener(THEME_EVENT, update);
+    };
   }, []);
   return colour;
 }

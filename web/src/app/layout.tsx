@@ -3,6 +3,7 @@ import type { ReactNode } from "react";
 import "@fontsource-variable/atkinson-hyperlegible-next";
 import "@/styles/tokens.css";
 import "@/styles/base.css";
+import { PrintSupport } from "@/components/PrintSupport";
 import { SiteHeader } from "@/components/SiteHeader";
 import { SkipLink } from "@/components/SkipLink";
 import { SiteFooter } from "@/components/SiteFooter";
@@ -25,6 +26,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
     <html lang="en-GB">
       <body>
         <SkipLink />
+        <PrintSupport />
         <SiteHeader />
         {children}
         <SiteFooter />

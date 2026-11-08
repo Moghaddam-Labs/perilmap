@@ -4,7 +4,7 @@ import styles from "./SiteHeader.module.css";
 
 export function SiteHeader() {
   return (
-    <header className={styles.bar}>
+    <header className={`${styles.bar} no-print`}>
       <Link href="/" className={styles.wordmark}>
         <BrandMark />
         PerilMap

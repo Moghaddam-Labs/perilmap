@@ -4,6 +4,7 @@ import styles from "./Notice.module.css";
 interface NoticeProps {
   title: string;
   tone?: "info" | "error";
+  className?: string;
   children: ReactNode;
 }
 

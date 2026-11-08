@@ -79,7 +79,7 @@ export function ResultCard({ result }: { result: PerilResult }) {
       )}
 
       {result.sources.length > 0 && (
-        <details className={styles.sources}>
+        <details className={styles.sources} data-print-open>
           <summary>About this data</summary>
           {result.sources.map((source) => (
             <dl key={source.name} className={styles.source}>

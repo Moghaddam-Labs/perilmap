@@ -53,3 +53,26 @@
   stroke: var(--brand-deep);
   stroke-width: 1.5;
 }
+
+.printMap {
+  margin: 0;
+  break-inside: avoid;
+}
+
+.printMap img {
+  width: 100%;
+  max-height: 95mm;
+  object-fit: contain;
+  border: 1px solid #9aa8a3;
+  border-radius: var(--radius-panel);
+}
+
+/* No image is made if the map never loaded, so nothing shows. */
+.printMap img:not([src]) {
+  display: none;
+}
+
+.printMap figcaption {
+  margin-block-start: var(--space-1);
+  font-size: var(--text-sm);
+}

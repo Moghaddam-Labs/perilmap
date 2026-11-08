@@ -4,7 +4,7 @@ import styles from "./HomeHero.module.css";
 /** The opening of the home page: the Thames, a pin and its search circle, with search in front. */
 export function HomeHero({ search }: { search: ReactNode }) {
   return (
-    <section className={styles.hero}>
+    <section className={`${styles.hero} no-print`}>
       <div className={styles.map} aria-hidden="true">
         {/* next/image adds an inline style, which the site's content security policy blocks. */}
         {/* eslint-disable-next-line @next/next/no-img-element */}

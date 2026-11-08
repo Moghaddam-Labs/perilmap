@@ -5,6 +5,7 @@ import type { Map as MapLibreMap, Marker } from "maplibre-gl";
 import { useEffect, useRef } from "react";
 import { LONDON_BOUNDARY, type Position } from "@/lib/geo";
 import { MAP_BOUNDS, MAP_STYLES, MAP_WORKER_PATH, STREET_ZOOM } from "@/lib/map";
+import { onPrintPrepare } from "@/lib/print";
 import styles from "./LocationMap.module.css";
 
 interface LocationMapProps {
@@ -76,11 +77,47 @@ function addBoundary(map: MapLibreMap) {
   }
 }
 
+const PIN_PATH = "M16 38.5S29 25.4 29 15.5a13 13 0 0 0-26 0C3 25.4 16 38.5 16 38.5Z";
+
+/**
+ * A still image of the map with the pin drawn on, for printing. A live map doesn't print reliably,
+ * because it redraws when the page changes size for paper.
+ */
+function snapshot(map: MapLibreMap, marker: Marker) {
+  const source = map.getCanvas();
+  const copy = document.createElement("canvas");
+  copy.width = source.width;
+  copy.height = source.height;
+  const context = copy.getContext("2d");
+  if (!context || !source.clientWidth) return null;
+  context.drawImage(source, 0, 0);
+  const scale = source.width / source.clientWidth;
+  const point = map.project(marker.getLngLat());
+  context.translate(point.x * scale, point.y * scale);
+  // The pin on screen is 44 px tall for a 40 unit drawing, with its tip at the bottom.
+  context.scale(1.1 * scale, 1.1 * scale);
+  context.translate(-16, -40);
+  context.lineWidth = 2;
+  context.fillStyle = "#ff7f6e";
+  context.strokeStyle = "#12332b";
+  const body = new Path2D(PIN_PATH);
+  context.fill(body);
+  context.stroke(body);
+  context.beginPath();
+  context.arc(16, 15.5, 5, 0, Math.PI * 2);
+  context.fillStyle = "#ffffff";
+  context.fill();
+  context.lineWidth = 1.5;
+  context.stroke();
+  return copy.toDataURL("image/png");
+}
+
 /** The map, loaded only when needed because MapLibre is large. */
 export function LocationMap({ start, pin, onPinChange, onUnavailable }: LocationMapProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<MapLibreMap | null>(null);
   const markerRef = useRef<Marker | null>(null);
+  const snapshotRef = useRef<HTMLImageElement>(null);
   const callbacks = useRef({ onPinChange, onUnavailable });
   useEffect(() => {
     callbacks.current = { onPinChange, onUnavailable };
@@ -115,6 +152,8 @@ export function LocationMap({ start, pin, onPinChange, onUnavailable }: Location
           touchPitch: false,
           cooperativeGestures: true,
           attributionControl: { compact: false },
+          // Keeps the last drawn map available, so it can be copied into an image for printing.
+          canvasContextAttributes: { preserveDrawingBuffer: true },
         });
       } catch {
         callbacks.current.onUnavailable();
@@ -196,5 +235,33 @@ export function LocationMap({ start, pin, onPinChange, onUnavailable }: Location
     }
   }, [pin.latitude, pin.longitude]);
 
-  return <div ref={containerRef} className={styles.map} />;
+  useEffect(
+    () =>
+      onPrintPrepare(() => {
+        const map = mapRef.current;
+        const marker = markerRef.current;
+        const image = snapshotRef.current;
+        if (!map || !marker || !image) return;
+        try {
+          const source = snapshot(map, marker);
+          if (source) image.src = source;
+        } catch {
+          // Without an image, the printout still has the location in words.
+        }
+      }),
+    [],
+  );
+
+  return (
+    <>
+      <div ref={containerRef} className={`${styles.map} no-print`} />
+      <figure className={`print-only ${styles.printMap}`}>
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img ref={snapshotRef} alt="Map of the area, with the pin on the home" data-map-snapshot />
+        <figcaption>
+          Map: OpenFreeMap © OpenMapTiles, data from OpenStreetMap © OpenStreetMap contributors.
+        </figcaption>
+      </figure>
+    </>
+  );
 }
