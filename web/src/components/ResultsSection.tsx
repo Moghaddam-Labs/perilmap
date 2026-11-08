@@ -2,6 +2,8 @@
 
 import { forwardRef } from "react";
 import type { Assessment } from "@/lib/api/types";
+import { printPage } from "@/lib/print";
+import { Button } from "./Button";
 import { Notice } from "./Notice";
 import { ResultCard } from "./ResultCard";
 import styles from "./ResultsSection.module.css";
@@ -63,6 +65,16 @@ export const ResultsSection = forwardRef<HTMLHeadingElement, ResultsSectionProps
           <>
             <p className={styles.disclaimer}>{assessment.disclaimer}</p>
             <DataDates assessment={assessment} />
+            {/* Out of date results aren't offered for printing, so a printout always matches the pin. */}
+            {!stale && (
+              <Button
+                variant="secondary"
+                className={`${styles.print} no-print`}
+                onClick={() => printPage(`PerilMap report near ${postcode}`)}
+              >
+                Print or save as PDF
+              </Button>
+            )}
             <div className={styles.grid}>
               {assessment.results.map((result) => (
                 <ResultCard key={result.peril_id} result={result} />

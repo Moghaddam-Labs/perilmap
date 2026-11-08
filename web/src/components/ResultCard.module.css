@@ -92,3 +92,22 @@
   color: var(--ink-soft);
   overflow-wrap: anywhere;
 }
+
+@media print {
+  .card {
+    display: block;
+    padding: var(--space-4);
+    border-color: #9aa8a3;
+  }
+
+  .card > * + * {
+    margin-block-start: var(--space-3);
+  }
+
+  .header,
+  .summary,
+  .part,
+  .sources {
+    break-inside: avoid;
+  }
+}

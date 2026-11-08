@@ -75,8 +75,9 @@
   --radius-key: 0.3125rem;
 }
 
+/* A page can force the light colours, which printing does, by setting data-theme="light". */
 @media (prefers-color-scheme: dark) {
-  :root {
+  :root:not([data-theme="light"]) {
     --paper: #0c1f1a;
     --surface: #15302a;
     --ink: #eef6f2;

@@ -36,7 +36,7 @@ export default function HomePage() {
     <main id="main">
       <LocationFinder />
 
-      <div className={styles.content}>
+      <div className={`${styles.content} no-print`}>
         <BoroughFloodSection />
 
         <section aria-labelledby="what-it-looks-at">

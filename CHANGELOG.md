@@ -30,6 +30,10 @@ All notable changes to PerilMap are recorded here. The format follows
 
 ### Added
 
+- Print or save the results as a PDF. The printout has a short report header with the location and
+  date, an image of the map with the pin, every result with its sources open and link addresses
+  written out, and the data credits. It always uses light colours, and results that are out of date
+  because the pin moved can't be printed.
 - A permanent chart on the home page of how much of each London borough is in a rivers and sea
   flood zone, stacked into Low or higher and Very Low. It uses vertical bars with slanted borough
   names on wide screens and horizontal bars on phones, with the figures as a table and a note on why

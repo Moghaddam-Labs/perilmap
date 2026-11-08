@@ -124,3 +124,56 @@ svg {
   white-space: nowrap;
   border: 0;
 }
+
+/* Shown only on paper */
+.print-only {
+  display: none !important;
+}
+
+@media print {
+  @page {
+    margin: 14mm;
+  }
+
+  html {
+    font-size: 80%;
+  }
+
+  body {
+    background: #fff;
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+
+  .print-only {
+    display: block !important;
+  }
+
+  .no-print {
+    display: none !important;
+  }
+
+  * {
+    box-shadow: none !important;
+  }
+
+  /* On paper, a link can't be clicked, so its address is printed after it. */
+  article a[href^="http"]::after {
+    content: " (" attr(href) ")";
+    font-weight: 400;
+    overflow-wrap: anywhere;
+  }
+
+  svg,
+  img,
+  table,
+  bezel-gauge {
+    break-inside: avoid;
+  }
+
+  h2,
+  h3,
+  h4 {
+    break-after: avoid;
+  }
+}

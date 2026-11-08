@@ -52,3 +52,25 @@
   flex-wrap: wrap;
   gap: var(--space-3);
 }
+
+.report {
+  display: grid;
+  gap: var(--space-1);
+}
+
+.reportTitle {
+  font-size: var(--text-xl);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+@media print {
+  .section {
+    display: block;
+    padding-block-start: 0;
+  }
+
+  .section > * + * {
+    margin-block-start: var(--space-3);
+  }
+}

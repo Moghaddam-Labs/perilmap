@@ -103,3 +103,24 @@
     grid-template-columns: minmax(0, 1fr);
   }
 }
+
+.print {
+  justify-self: start;
+}
+
+/* Browsers can overlap grid content when it splits across pages, so paper uses plain stacking. */
+@media print {
+  .section {
+    display: block;
+    padding-block-start: var(--space-4);
+  }
+
+  .section > * + *,
+  .grid > * + * {
+    margin-block-start: var(--space-4);
+  }
+
+  .grid {
+    display: block;
+  }
+}

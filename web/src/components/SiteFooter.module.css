@@ -114,3 +114,30 @@
     padding-block-start: var(--space-6);
   }
 }
+
+/* On paper: no colours or links list, just the disclaimer and the data credits the licences require. */
+@media print {
+  .footer {
+    margin: 0;
+    border-top: 1px solid #12332b;
+    border-radius: 0;
+    background: none;
+  }
+
+  .inner {
+    padding: var(--space-4) 0 0;
+  }
+
+  .columns {
+    display: none;
+  }
+
+  .credits {
+    margin-block-start: 0;
+  }
+
+  .credits a::after {
+    content: " (" attr(href) ")";
+    overflow-wrap: anywhere;
+  }
+}
