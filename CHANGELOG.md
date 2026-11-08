@@ -51,6 +51,8 @@ All notable changes to PerilMap are recorded here. The format follows
 
 ### Changed
 
+- CI can now be started by hand from the Actions tab ("Run workflow"), for when GitHub doesn't
+  start a run after a merge.
 - Bezel Charts is updated to v1.1.0, for its stacked bars and slanted labels.
 - Every expandable line on the site shares one open and close arrow.
 - "Flood levels you can tell apart" is now "Telling flood levels apart", so it fits on one line.
@@ -79,6 +81,9 @@ All notable changes to PerilMap are recorded here. The format follows
 
 ### Fixed
 
+- The website's lint tools now use minimatch 11.0.5, which fixes a moderate denial of service
+  advisory (GHSA-g3hv-75wg-m249). ESLint and typescript-eslint still ask for version 10, so an npm
+  override sets it until they catch up. It only affects development tools, not the live site.
 - In dark mode, the print button now prints the light map. It switches the map to its light style,
   waits for it to draw, copies it, then switches back.
 - The image cleanup command in the deployment guide now applies the policy, using `--no-dry-run`.
