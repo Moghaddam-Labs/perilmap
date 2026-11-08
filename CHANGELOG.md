@@ -6,27 +6,6 @@ All notable changes to PerilMap are recorded here. The format follows
 
 ## [Unreleased]
 
-### Changed
-
-- Bezel Charts is updated to v1.1.0, for its stacked bars and slanted labels.
-- Every expandable line on the site shares one open and close arrow.
-- "Flood levels you can tell apart" is now "Telling flood levels apart", so it fits on one line.
-- The flood levels and data gaps explanations are now cards in a row under "Reading the results",
-  with a new card for where the data comes from. Each opens on click or tap and closes when you click
-  elsewhere, press Escape or open another.
-- The results heading names the postcode, such as "What's around the pin near W5 4HT".
-- The footer and the new sources card share one list of data sources, which a test keeps matched to
-  the API.
-- "How it works" is now three cards in a row, matching "What PerilMap looks at".
-- The website's content security policy allows inline styles, which Bezel Charts needs. Scripts are
-  still locked down.
-- The website's main colour is now ink green, across the site, its icon, the README banner and the
-  social preview.
-- The home page has a slim top bar, room for postcode search at the top, a shorter header on phones,
-  and new sections for what PerilMap looks at and how it works. The flood key and gap explanations
-  now sit further down.
-- Website styling: pill-shaped controls, softly rounded panels, and a labelled two-tone footer holding
-  data credits, licences, project links and the privacy summary.
 
 ### Added
 
@@ -65,20 +44,32 @@ All notable changes to PerilMap are recorded here. The format follows
 - Repo foundations: README, licence, security policy, contribution notes, CI and Dependabot.
 - Flood data test: estimates London's Environment Agency flood data, loads it into PostGIS with a
   size guard, and reports database size, lookup speed and results for 20 known places.
-
-### Added
-
 - Official Greater London boundary, with a check of surface water coverage against it.
 - A list of blank surface water squares that show No data, so a gap can never look safe.
 - Results outside London show Not available here yet, and results near a gap are marked may be
   incomplete.
 
-### Fixed
-
-- The image cleanup command in the deployment guide now applies the policy, using `--no-dry-run`.
-
 ### Changed
 
+- Bezel Charts is updated to v1.1.0, for its stacked bars and slanted labels.
+- Every expandable line on the site shares one open and close arrow.
+- "Flood levels you can tell apart" is now "Telling flood levels apart", so it fits on one line.
+- The flood levels and data gaps explanations are now cards in a row under "Reading the results",
+  with a new card for where the data comes from. Each opens on click or tap and closes when you click
+  elsewhere, press Escape or open another.
+- The results heading names the postcode, such as "What's around the pin near W5 4HT".
+- The footer and the new sources card share one list of data sources, which a test keeps matched to
+  the API.
+- "How it works" is now three cards in a row, matching "What PerilMap looks at".
+- The website's content security policy allows inline styles, which Bezel Charts needs. Scripts are
+  still locked down.
+- The website's main colour is now ink green, across the site, its icon, the README banner and the
+  social preview.
+- The home page has a slim top bar, room for postcode search at the top, a shorter header on phones,
+  and new sections for what PerilMap looks at and how it works. The flood key and gap explanations
+  now sit further down.
+- Website styling: pill-shaped controls, softly rounded panels, and a labelled two-tone footer holding
+  data credits, licences, project links and the privacy summary.
 - The grid area now extends past London by more than the search radius, so lookups at the edge can
   still see nearby zones.
 - Flood data is now stored as 5 m grid files instead of database shapes. Surface water shapes are
@@ -88,4 +79,8 @@ All notable changes to PerilMap are recorded here. The format follows
 
 ### Fixed
 
+- In dark mode, the print button now prints the light map. It switches the map to its light style,
+  waits for it to draw, copies it, then switches back.
+- The image cleanup command in the deployment guide now applies the policy, using `--no-dry-run`.
 - Pinned dependencies so they install on Python 3.11, and CI now tests both 3.11 and 3.13.
+

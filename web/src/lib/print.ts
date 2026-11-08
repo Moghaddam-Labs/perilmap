@@ -9,7 +9,12 @@ import { flushSync } from "react-dom";
  */
 
 type Undo = void | (() => void);
-type Preparer = () => Undo;
+
+/**
+ * `canWait` is true when printing from PerilMap's own button, which can wait for slow work such as
+ * the map redrawing. Printing from the browser's menu can't wait, so preparers do what they can at once.
+ */
+type Preparer = (options: { canWait: boolean }) => Undo | Promise<Undo>;
 
 const preparers = new Set<Preparer>();
 let restoreActive: (() => void) | null = null;
@@ -24,23 +29,12 @@ export function onPrintPrepare(prepare: Preparer) {
   };
 }
 
-function prepare() {
+async function prepare(canWait: boolean) {
   if (restoreActive) return;
   const root = document.documentElement;
   const theme = root.getAttribute("data-theme");
-  // Paper is white, so a printout always uses the light colours, whatever the screen uses.
-  root.setAttribute("data-theme", "light");
-  flushSync(() => {
-    window.dispatchEvent(new Event(THEME_EVENT));
-  });
-  // Every "About this data" section opens, so nothing is left out of the printout.
-  const closed = [...document.querySelectorAll<HTMLDetailsElement>("details[data-print-open]")]
-    .filter((details) => !details.open)
-    .map((details) => {
-      details.open = true;
-      return details;
-    });
-  const undos = [...preparers].map((each) => each()).filter(Boolean) as (() => void)[];
+  const undos: (() => void)[] = [];
+  // Set straight away, so printing from the browser's menu still gets a full restore.
   restoreActive = () => {
     undos.forEach((undo) => undo());
     closed.forEach((details) => {
@@ -53,6 +47,29 @@ function prepare() {
     });
     restoreActive = null;
   };
+  // Paper is white, so a printout always uses the light colours, whatever the screen uses.
+  root.setAttribute("data-theme", "light");
+  flushSync(() => {
+    window.dispatchEvent(new Event(THEME_EVENT));
+  });
+  // Every "About this data" section opens, so nothing is left out of the printout.
+  const closed = [...document.querySelectorAll<HTMLDetailsElement>("details[data-print-open]")]
+    .filter((details) => !details.open)
+    .map((details) => {
+      details.open = true;
+      return details;
+    });
+  const results = [...preparers].map((each) => each({ canWait }));
+  const keep = (undo: Undo) => {
+    if (undo) undos.push(undo);
+  };
+  results.forEach((result) => {
+    if (result instanceof Promise) result.then(keep, () => undefined);
+    else keep(result);
+  });
+  if (canWait) {
+    await Promise.allSettled(results);
+  }
 }
 
 function restore() {
@@ -61,7 +78,7 @@ function restore() {
 
 /** Gets the page ready, then opens the browser's print window, where "Save as PDF" is an option. */
 export async function printPage(title: string) {
-  prepare();
+  await prepare(true);
   const original = document.title;
   // Browsers suggest the page title as the PDF's file name.
   document.title = title;
@@ -78,10 +95,11 @@ export async function printPage(title: string) {
 /** Also gets the page ready when someone prints from the browser's own menu. */
 export function usePrintSupport() {
   useEffect(() => {
-    window.addEventListener("beforeprint", prepare);
+    const beforePrint = () => void prepare(false);
+    window.addEventListener("beforeprint", beforePrint);
     window.addEventListener("afterprint", restore);
     return () => {
-      window.removeEventListener("beforeprint", prepare);
+      window.removeEventListener("beforeprint", beforePrint);
       window.removeEventListener("afterprint", restore);
     };
   }, []);

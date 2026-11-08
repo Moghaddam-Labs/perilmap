@@ -12,10 +12,12 @@ const BLANK_STYLE = {
   layers: [{ id: "background", type: "background", paint: { "background-color": "#e6ebe8" } }],
 };
 
-async function showResults(page: Page) {
-  await page.route("https://tiles.openfreemap.org/styles/*", (route) =>
-    route.fulfill({ json: BLANK_STYLE }),
-  );
+async function showResults(page: Page, { mapStyles = true } = {}) {
+  if (mapStyles) {
+    await page.route("https://tiles.openfreemap.org/styles/*", (route) =>
+      route.fulfill({ json: BLANK_STYLE }),
+    );
+  }
   await page.route(`${API}/v1/postcodes/lookup`, (route) =>
     route.fulfill({
       json: { postcode: "E1W 1AA", latitude: 51.5045, longitude: -0.056, attribution: "x" },
@@ -107,4 +109,43 @@ test("dark mode still prints in light colours", async ({ page }) => {
   await expect
     .poll(() => page.evaluate(() => (window as unknown as { paper?: string }).paper?.trim()))
     .toMatch(/^#fff(fff)?$/);
+});
+
+test("in dark mode, the print button prints the light map, then puts the dark map back", async ({
+  page,
+}) => {
+  await page.emulateMedia({ colorScheme: "dark" });
+  const styles: string[] = [];
+  await page.route("https://tiles.openfreemap.org/styles/*", (route) => {
+    const name = new URL(route.request().url()).pathname.split("/").pop() ?? "";
+    styles.push(name);
+    const colour = name === "dark" ? "#101010" : "#f0f0f0";
+    return route.fulfill({
+      json: {
+        version: 8,
+        sources: {},
+        layers: [{ id: "bg", type: "background", paint: { "background-color": colour } }],
+      },
+    });
+  });
+  await showResults(page, { mapStyles: false });
+  await page.evaluate(() => {
+    window.print = () => {};
+  });
+  await page.getByRole("button", { name: "Print or save as PDF" }).click();
+  await expect(page.locator("img[data-map-snapshot]")).toHaveAttribute("src", /^data:image\/png/);
+  // Reads one pixel from the corner of the printed map image.
+  const corner = await page.locator("img[data-map-snapshot]").evaluate(async (image) => {
+    const img = image as HTMLImageElement;
+    await img.decode();
+    const canvas = document.createElement("canvas");
+    canvas.width = img.naturalWidth;
+    canvas.height = img.naturalHeight;
+    const context = canvas.getContext("2d");
+    context?.drawImage(img, 0, 0);
+    return Array.from(context?.getImageData(2, 2, 1, 1).data ?? []);
+  });
+  expect(corner.slice(0, 3)).toEqual([240, 240, 240]);
+  await expect.poll(() => styles.at(-1)).toBe("dark");
+  expect(styles).toContain("positron");
 });
