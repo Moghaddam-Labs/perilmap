@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import importlib.util
+import json
 from pathlib import Path
 
 from perilmap.core.models import DISCLAIMER
@@ -43,3 +44,16 @@ def test_the_websites_source_list_matches_the_api():
     for source in sources:
         for value in (source.publisher, source.url, source.last_updated, source.resolution):
             assert value in web, f"web/src/lib/dataSources.ts is missing: {value}"
+
+
+def test_the_borough_chart_has_every_borough_with_sensible_shares():
+    data = json.loads((ROOT / "web" / "src" / "lib" / "borough-flood.json").read_text("utf-8"))
+    boroughs = data["boroughs"]
+    assert len(boroughs) == 33
+    assert len({borough["code"] for borough in boroughs}) == 33
+    for borough in boroughs:
+        shares = borough["low_or_higher_percent"], borough["very_low_percent"]
+        assert all(0 <= share <= 100 for share in shares)
+        assert sum(shares) <= 100
+    ranking = [borough["low_or_higher_percent"] for borough in boroughs]
+    assert ranking == sorted(ranking, reverse=True)

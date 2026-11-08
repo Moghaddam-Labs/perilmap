@@ -66,6 +66,13 @@ test("checking a location shows a card for each peril", async ({ page }) => {
   expect(problems).toEqual([]);
 });
 
+test("the results say how recent each result's data is", async ({ page }) => {
+  await checkLocation(page, { status: 200, body: fixture("thames_wapping") });
+  const dates = page.getByRole("heading", { name: "How recent the data is" }).locator("xpath=..");
+  await expect(dates).toContainText("6 July 2026, downloaded November 2026");
+  await expect(dates).toContainText("September 2024, covering summers from 2018 to 2022");
+});
+
 test("flood cards list the nearest zone of each level, in words", async ({ page }) => {
   await checkLocation(page, { status: 200, body: fixture("thames_wapping") });
   const card = page.getByRole("article", { name: "Flooding from rivers and sea" });

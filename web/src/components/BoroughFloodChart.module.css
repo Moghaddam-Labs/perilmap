@@ -1,0 +1,30 @@
+/* Only one of the two charts shows at a time, so screen readers only meet one. */
+.wide {
+  min-height: 380px;
+}
+
+.narrow {
+  display: none;
+}
+
+.wide bezel-bars,
+.narrow bezel-bars {
+  display: block;
+}
+
+.note {
+  margin-block-start: var(--space-2);
+  padding-inline: var(--space-2);
+  color: var(--ink-soft);
+  font-size: var(--text-sm);
+}
+
+@media (max-width: 48rem) {
+  .wide {
+    display: none;
+  }
+
+  .narrow {
+    display: block;
+  }
+}

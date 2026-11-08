@@ -19,9 +19,9 @@ describe("Reading the results cards", () => {
 
   it("opens a card on click, showing all of its information", async () => {
     render(<ReadingTheResults />);
-    await userEvent.click(card(/Flood levels/));
-    expect(card(/Flood levels/).getAttribute("aria-expanded")).toBe("true");
-    const panel = screen.getByRole("region", { name: "Flood levels you can tell apart" });
+    await userEvent.click(card(/Telling flood levels/));
+    expect(card(/Telling flood levels/).getAttribute("aria-expanded")).toBe("true");
+    const panel = screen.getByRole("region", { name: "Telling flood levels apart" });
     for (const text of ["High", "Medium", "Low", "Very Low", "Below 1 in 1,000"]) {
       expect(panel.textContent).toContain(text);
     }
@@ -29,9 +29,9 @@ describe("Reading the results cards", () => {
 
   it("keeps only one card open at a time", async () => {
     render(<ReadingTheResults />);
-    await userEvent.click(card(/Flood levels/));
+    await userEvent.click(card(/Telling flood levels/));
     await userEvent.click(card(/A gap never looks safe/));
-    expect(card(/Flood levels/).getAttribute("aria-expanded")).toBe("false");
+    expect(card(/Telling flood levels/).getAttribute("aria-expanded")).toBe("false");
     expect(openPanels()).toHaveLength(1);
   });
 
@@ -64,10 +64,10 @@ describe("Reading the results cards", () => {
 
   it("names each card by its title and short line, not the show more hint", () => {
     render(<ReadingTheResults />);
-    expect(card(/Flood levels/).textContent).toContain("Show more");
+    expect(card(/Telling flood levels/).textContent).toContain("Show more");
     expect(
       screen.getByRole("button", {
-        name: "Flood levels you can tell apart The Environment Agency's four levels, each with its own pattern.",
+        name: "Telling flood levels apart The Environment Agency's four levels, each with its own pattern.",
       }),
     ).toBeTruthy();
   });

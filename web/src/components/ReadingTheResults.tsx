@@ -19,7 +19,7 @@ const GAPS = [
 const CARDS: Explainer[] = [
   {
     id: "flood-levels",
-    title: "Flood levels you can tell apart",
+    title: "Telling flood levels apart",
     teaser: "The Environment Agency's four levels, each with its own pattern.",
     icon: (
       <>

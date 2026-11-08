@@ -1,3 +1,4 @@
+import { BoroughFloodSection } from "@/components/BoroughFloodSection";
 import { LocationFinder } from "@/components/LocationFinder";
 import { PerilIcon } from "@/components/PerilIcon";
 import { ReadingTheResults } from "@/components/ReadingTheResults";
@@ -36,6 +37,8 @@ export default function HomePage() {
       <LocationFinder />
 
       <div className={styles.content}>
+        <BoroughFloodSection />
+
         <section aria-labelledby="what-it-looks-at">
           <h2 id="what-it-looks-at">What PerilMap looks at</h2>
           <ul className={styles.perils}>

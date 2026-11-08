@@ -18,6 +18,32 @@
   font-weight: 650;
 }
 
+.dates {
+  display: grid;
+  gap: var(--space-2);
+  font-size: var(--text-sm);
+}
+
+.dates h3 {
+  font-size: var(--text-sm);
+  letter-spacing: 0;
+  line-height: 1.55;
+}
+
+.dates dl {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
+  gap: var(--space-2) var(--space-5);
+}
+
+.dates dt {
+  font-weight: 700;
+}
+
+.dates dd {
+  color: var(--ink-soft);
+}
+
 .grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -47,6 +73,32 @@
 }
 
 @media (max-width: 56rem) {
+  .dates {
+    display: grid;
+    gap: var(--space-2);
+    font-size: var(--text-sm);
+  }
+
+  .dates h3 {
+    font-size: var(--text-sm);
+    letter-spacing: 0;
+    line-height: 1.55;
+  }
+
+  .dates dl {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
+    gap: var(--space-2) var(--space-5);
+  }
+
+  .dates dt {
+    font-weight: 700;
+  }
+
+  .dates dd {
+    color: var(--ink-soft);
+  }
+
   .grid {
     grid-template-columns: minmax(0, 1fr);
   }
