@@ -124,3 +124,25 @@
     display: block;
   }
 }
+
+.further {
+  display: grid;
+  gap: var(--space-2);
+  max-width: var(--measure);
+}
+
+.further h3 {
+  font-size: var(--text-md);
+}
+
+.further ul {
+  display: grid;
+  gap: var(--space-2);
+  padding-inline-start: var(--space-5);
+}
+
+@media print {
+  .further {
+    display: none;
+  }
+}

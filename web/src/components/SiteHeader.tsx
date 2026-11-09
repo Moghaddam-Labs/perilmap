@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { PAGES } from "@/lib/pages";
 import { BrandMark } from "./BrandMark";
 import styles from "./SiteHeader.module.css";
 
@@ -15,7 +16,10 @@ export function SiteHeader() {
             <Link href="/#how-it-works">How it works</Link>
           </li>
           <li>
-            <Link href="/#privacy">Privacy</Link>
+            <Link href={PAGES.about.href}>{PAGES.about.label}</Link>
+          </li>
+          <li>
+            <Link href={PAGES.privacy.href}>{PAGES.privacy.label}</Link>
           </li>
         </ul>
       </nav>

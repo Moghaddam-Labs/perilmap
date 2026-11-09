@@ -46,6 +46,12 @@ def test_the_websites_source_list_matches_the_api():
             assert value in web, f"web/src/lib/dataSources.ts is missing: {value}"
 
 
+def test_the_websites_not_covered_list_matches_the_api():
+    web = (ROOT / "web" / "src" / "lib" / "notCovered.ts").read_text(encoding="utf-8")
+    for item in wording.NOT_COVERED:
+        assert f'"{item}"' in web, f"web/src/lib/notCovered.ts is missing: {item}"
+
+
 def test_the_borough_chart_has_every_borough_with_sensible_shares():
     data = json.loads((ROOT / "web" / "src" / "lib" / "borough-flood.json").read_text("utf-8"))
     boroughs = data["boroughs"]

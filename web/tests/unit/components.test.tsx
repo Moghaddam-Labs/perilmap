@@ -157,13 +157,14 @@ describe("SiteFooter", () => {
 });
 
 describe("SiteHeader", () => {
-  it("links to the home page and the two main sections", () => {
+  it("links to the home page, how it works and the reading pages", () => {
     render(<SiteHeader />);
     expect(screen.getByRole("link", { name: "PerilMap" }).getAttribute("href")).toBe("/");
     const links = screen.getByRole("navigation", { name: "Main" }).querySelectorAll("a");
     expect([...links].map((link) => link.getAttribute("href"))).toEqual([
       "/#how-it-works",
-      "/#privacy",
+      "/about",
+      "/privacy",
     ]);
   });
 

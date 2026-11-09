@@ -1,5 +1,7 @@
+import Link from "next/link";
 import type { ReactNode } from "react";
 import { DATA_SOURCES } from "@/lib/dataSources";
+import { PAGES, REPO } from "@/lib/pages";
 import { BrandMark } from "./BrandMark";
 import { ExternalLink } from "./ExternalLink";
 import styles from "./SiteFooter.module.css";
@@ -8,7 +10,6 @@ import styles from "./SiteFooter.module.css";
 export const DISCLAIMER =
   "Guidance only. This is not an insurance quote, survey or financial advice. It describes the area around a home, not the home itself.";
 
-const REPO = "https://github.com/Moghaddam-Labs/perilmap";
 const OGL_V3 = "https://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/";
 const OGL_V2 = "https://www.nationalarchives.gov.uk/doc/open-government-licence/version/2/";
 
@@ -63,6 +64,11 @@ export function SiteFooter() {
 
           <FooterColumn title="Project">
             <ul className={styles.list}>
+              {[PAGES.about, PAGES.floodInsurance].map(({ href, label }) => (
+                <li key={href}>
+                  <Link href={href}>{label}</Link>
+                </li>
+              ))}
               {PROJECT_LINKS.map(({ label, href }) => (
                 <li key={label}>
                   <ExternalLink href={href}>{label}</ExternalLink>
@@ -71,11 +77,14 @@ export function SiteFooter() {
             </ul>
           </FooterColumn>
 
-          <FooterColumn title="Your privacy" id="privacy">
+          <FooterColumn title="Your privacy">
             <p>
               Searched postcodes and locations aren&apos;t saved, and they&apos;re kept out of web
               addresses and logs. The map comes from OpenFreeMap, which can see which area of the
               map you&apos;re looking at, but not the postcode or the pin.
+            </p>
+            <p className={styles.more}>
+              <Link href={PAGES.privacy.href}>Read the privacy notice</Link>
             </p>
           </FooterColumn>
         </div>
