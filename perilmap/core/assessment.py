@@ -11,6 +11,7 @@ from perilmap.core.models import (
     Location,
     PerilResult,
     ResultStatus,
+    ZoneMap,
 )
 from perilmap.core.plugins import PerilPlugin, RegionPlugin
 
@@ -85,3 +86,17 @@ def assess(location: Location, registry: RegionRegistry) -> Assessment:
         results=tuple(assess_peril(peril, location) for peril in region.perils),
         not_covered=tuple(region.not_covered),
     )
+
+
+def zone_map(location: Location, peril_id: str, registry: RegionRegistry) -> ZoneMap | None:
+    """Find a peril's map near a location. None means there's nothing to draw, or it failed."""
+    region = registry.region_for(location)
+    peril = next((p for p in region.perils if p.peril_id == peril_id), None) if region else None
+    if peril is None:
+        return None
+    try:
+        return peril.zone_map(location)
+    except Exception as error:
+        # As with results, only the error's type is logged, never the location.
+        logger.error("Map for %s failed with %s", peril.peril_id, type(error).__name__)
+        raise

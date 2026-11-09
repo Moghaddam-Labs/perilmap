@@ -12,6 +12,8 @@ from perilmap.core.models import (
     PerilResult,
     ResultStatus,
     ZoneDistance,
+    ZoneMap,
+    ZoneShape,
 )
 from perilmap.core.plugins import PerilPlugin, RegionPlugin
 
@@ -51,11 +53,20 @@ COMPARISON = AreaComparison(
 )
 
 
+def square_around(location: Location, size: float = 0.001):
+    lon, lat = location.longitude, location.latitude
+    ring = ((lon, lat), (lon + size, lat), (lon + size, lat + size), (lon, lat + size), (lon, lat))
+    return (ring,)
+
+
 class LavaPeril(PerilPlugin):
     peril_id = "lava"
 
     def assess(self, location: Location) -> PerilResult:
         return make_result()
+
+    def zone_map(self, location: Location) -> ZoneMap:
+        return ZoneMap(1_000, (ZoneShape("High", (square_around(location),)),))
 
 
 class WarmthPeril(PerilPlugin):
@@ -74,6 +85,9 @@ class BrokenPeril(PerilPlugin):
 
     def assess(self, location: Location) -> PerilResult:
         raise RuntimeError(f"Failed at {location.latitude}, {location.longitude}")
+
+    def zone_map(self, location: Location) -> ZoneMap:
+        raise RuntimeError(f"Map failed at {location.latitude}, {location.longitude}")
 
 
 class WrongIdPeril(PerilPlugin):

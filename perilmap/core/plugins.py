@@ -5,7 +5,7 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 from collections.abc import Sequence
 
-from perilmap.core.models import Location, PerilResult
+from perilmap.core.models import Location, PerilResult, ZoneMap
 
 
 class PerilPlugin(ABC):
@@ -19,6 +19,10 @@ class PerilPlugin(ABC):
     @abstractmethod
     def assess(self, location: Location) -> PerilResult:
         """Return this peril's result for a location inside the region."""
+
+    def zone_map(self, location: Location) -> ZoneMap | None:
+        """Return the zones to draw around a location, or None if this peril has nothing to draw."""
+        return None
 
 
 class RegionPlugin(ABC):

@@ -12,3 +12,5 @@ export type Zone = Schemas["ZoneResponse"];
 export type DataSource = Schemas["SourceResponse"];
 export type GuidanceLink = Schemas["LinkResponse"];
 export type PostcodeResult = Schemas["PostcodeResponse"];
+export type ZoneMap = Schemas["ZoneMapResponse"];
+export type ZoneShape = Schemas["ZoneShapeResponse"];

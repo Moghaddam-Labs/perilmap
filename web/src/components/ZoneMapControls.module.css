@@ -1,0 +1,112 @@
+.controls {
+  display: grid;
+  gap: var(--space-3);
+}
+
+.choice {
+  display: grid;
+  gap: var(--space-2);
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.legend {
+  padding: 0;
+  font-weight: 700;
+}
+
+.options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.option {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  min-height: 2.75rem;
+  padding: var(--space-2) var(--space-4);
+  border: 2px solid var(--control-edge);
+  border-radius: var(--radius-pill);
+  background: var(--surface);
+  font-weight: 650;
+  cursor: pointer;
+}
+
+/* The real radio button sits under the label, so it keeps working with keyboards and readers. */
+.option input {
+  position: absolute;
+  inset: 0;
+  margin: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.option:has(input:checked) {
+  border-color: var(--ink);
+  background: var(--ink);
+  color: var(--paper);
+}
+
+.option:has(input:checked) span::before {
+  /* Shown, but not read aloud, as the radio button already says it is chosen. */
+  content: "✓ " / "";
+}
+
+.option:has(input:focus-visible) {
+  outline: 3px solid var(--focus);
+  outline-offset: 2px;
+}
+
+.status {
+  max-width: var(--measure);
+  color: var(--ink-soft);
+}
+
+.failed {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3);
+  color: var(--error);
+  font-weight: 650;
+}
+
+.key {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 16rem), 1fr));
+  gap: var(--space-3) var(--space-5);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: var(--text-sm);
+}
+
+.key li {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.chance {
+  display: block;
+  color: var(--ink-soft);
+}
+
+.circle {
+  width: 2rem;
+  height: 2rem;
+  flex: none;
+  fill: none;
+  stroke: var(--ink);
+  stroke-width: 2.5;
+}
+
+@media print {
+  .key {
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--space-2) var(--space-4);
+  }
+}

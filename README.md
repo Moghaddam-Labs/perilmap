@@ -57,6 +57,7 @@ default.
 | Endpoint | What it does |
 |---|---|
 | `POST /v1/assessments` | Takes a latitude and longitude, and returns a result for each peril |
+| `POST /v1/zone-maps` | Takes a latitude, longitude and flood check, and returns the zones within the search area as map shapes, plus any areas with no data |
 | `POST /v1/postcodes/lookup` | Takes a postcode, and returns its position through postcodes.io |
 | `GET /health` | Says the API is running |
 

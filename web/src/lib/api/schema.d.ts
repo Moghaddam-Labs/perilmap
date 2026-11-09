@@ -55,6 +55,23 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  "/v1/zone-maps": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** Create Zone Map */
+    post: operations["create_zone_map_v1_zone_maps_post"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -199,6 +216,32 @@ export interface components {
       /** Url */
       url: string;
     };
+    /** ZoneMapRequest */
+    ZoneMapRequest: {
+      /** Latitude */
+      latitude: number;
+      /** Longitude */
+      longitude: number;
+      /** Peril Id */
+      peril_id: string;
+    };
+    /** ZoneMapResponse */
+    ZoneMapResponse: {
+      /**
+       * No Data Areas
+       * @description Parts of the search area with no data, which must not look clear.
+       */
+      no_data_areas: [number, number][][][];
+      /** Peril Id */
+      peril_id: string;
+      /** Search Radius Metres */
+      search_radius_metres: number;
+      /**
+       * Shapes
+       * @description Where each band's zones lie in the search area, highest band first.
+       */
+      shapes: components["schemas"]["ZoneShapeResponse"][];
+    };
     /** ZoneResponse */
     ZoneResponse: {
       /** Band */
@@ -207,6 +250,13 @@ export interface components {
       label: string;
       /** Metres */
       metres: number | null;
+    };
+    /** ZoneShapeResponse */
+    ZoneShapeResponse: {
+      /** Band */
+      band: string;
+      /** Coordinates */
+      coordinates: [number, number][][][];
     };
   };
   responses: never;
@@ -348,6 +398,66 @@ export interface operations {
       };
       /** @description 503 */
       503: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ErrorResponse"];
+        };
+      };
+    };
+  };
+  create_zone_map_v1_zone_maps_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["ZoneMapRequest"];
+      };
+    };
+    responses: {
+      /** @description 200 */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ZoneMapResponse"];
+        };
+      };
+      /** @description 404 */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ErrorResponse"];
+        };
+      };
+      /** @description 413 */
+      413: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ErrorResponse"];
+        };
+      };
+      /** @description 422 */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ErrorResponse"];
+        };
+      };
+      /** @description 429 */
+      429: {
         headers: {
           [name: string]: unknown;
         };

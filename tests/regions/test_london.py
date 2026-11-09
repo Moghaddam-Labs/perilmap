@@ -4,6 +4,7 @@ import ast
 import concurrent.futures
 from pathlib import Path
 
+import numpy as np
 import pytest
 import shapely
 from rasterio.warp import transform as reproject
@@ -23,6 +24,7 @@ from perilmap.core.models import (
 )
 from perilmap.regions.london import wording
 from perilmap.regions.london.coverage import Coverage, NoDataSquare, load_boundary
+from perilmap.regions.london.projection import LocalProjection
 from perilmap.regions.london.region import (
     LondonDataError,
     LondonRegion,
@@ -273,3 +275,79 @@ def test_wording_avoids_em_dashes_and_claims_of_safety() -> None:
 def test_all_links_use_https() -> None:
     links = [wording.CHECK_FLOOD_RISK, *wording.FLOOD_LINKS, *wording.HEAT_LINKS]
     assert all(link.url.startswith("https://") for link in [*links, *wording.SUBSIDENCE_LINKS])
+
+
+def peril(region: LondonRegion, peril_id: str):
+    return next(p for p in region.perils if p.peril_id == peril_id)
+
+
+def test_zone_map_draws_exactly_the_bands_the_distances_found(region: LondonRegion) -> None:
+    for spot in (IN_LONDON, (530_200, 180_050), (530_900, 180_500), (531_500, 181_500)):
+        for peril_id in ("flood_rivers_and_sea", "flood_surface_water"):
+            result = result_for(region, peril_id, at(*spot))
+            found = {z.band for z in result.measurement.zones if z.metres is not None}
+            zone_map = peril(region, peril_id).zone_map(at(*spot))
+            assert {shape.band for shape in zone_map.shapes} == found
+
+
+def test_zone_map_outlines_the_zone_in_the_right_place(region: LondonRegion) -> None:
+    zone_map = peril(region, "flood_rivers_and_sea").zone_map(at(*IN_LONDON))
+    high = next(shape for shape in zone_map.shapes if shape.band == "High")
+    [polygon] = high.polygons
+    xs, ys = reproject("EPSG:4326", "EPSG:27700", *zip(*polygon[0], strict=True))
+    traced = shapely.Polygon(zip(xs, ys, strict=True))
+    expected = shapely.box(HIGH_ZONE[0], HIGH_ZONE[1], HIGH_ZONE[0] + 100, HIGH_ZONE[1] + 100)
+    # The same square, give or take rounding to about a metre.
+    assert shapely.hausdorff_distance(traced, expected) < 1.5
+
+
+def test_zone_map_outer_edges_run_anticlockwise_as_geojson_asks(region: LondonRegion) -> None:
+    zone_map = peril(region, "flood_rivers_and_sea").zone_map(at(*IN_LONDON))
+    for shape in zone_map.shapes:
+        for polygon in shape.polygons:
+            assert shapely.LinearRing(polygon[0]).is_ccw
+
+
+def test_zone_map_only_shows_zones_inside_the_search_area(region: LondonRegion) -> None:
+    far = (531_500, 181_500)
+    zone_map = peril(region, "flood_rivers_and_sea").zone_map(at(*far))
+    assert zone_map.shapes == ()
+    assert zone_map.search_radius_metres == 1_000
+
+
+def test_zone_map_marks_nearby_areas_with_no_data(region: LondonRegion) -> None:
+    near_gap = (531_800, 181_800)
+    surface = peril(region, "flood_surface_water").zone_map(at(*near_gap))
+    [gap] = surface.no_data_areas
+    xs, ys = reproject("EPSG:4326", "EPSG:27700", *zip(*gap[0], strict=True))
+    assert min(xs) == pytest.approx(GAP_SQUARE[0], abs=1)
+    assert min(ys) == pytest.approx(GAP_SQUARE[1], abs=1)
+    rivers = peril(region, "flood_rivers_and_sea").zone_map(at(*near_gap))
+    assert rivers.no_data_areas == ()
+
+
+def test_zone_map_inside_a_blank_square_still_marks_it(region: LondonRegion) -> None:
+    inside_gap = (GAP_SQUARE[0] + 500, GAP_SQUARE[1] + 500)
+    assert peril(region, "flood_surface_water").zone_map(at(*inside_gap)).no_data_areas
+
+
+def test_zone_map_has_nothing_outside_london(region: LondonRegion) -> None:
+    outside = Location(52.2, 0.12)
+    assert all(p.zone_map(outside) is None for p in region.perils[:2])
+    assert peril(region, "heat").zone_map(outside) is None
+
+
+def test_fast_conversion_matches_the_full_one_across_london() -> None:
+    random = np.random.default_rng(7)
+    for x, y in ((503_500, 155_500), (561_500, 200_500), (530_000, 180_000)):
+        projection = LocalProjection(x, y, 1_050)
+        points = np.column_stack(
+            [x + random.uniform(-1_050, 1_050, 500), y + random.uniform(-1_050, 1_050, 500)]
+        )
+        fast = projection.to_lon_lat(points)
+        longitudes, latitudes = reproject(
+            "EPSG:27700", "EPSG:4326", points[:, 0].tolist(), points[:, 1].tolist()
+        )
+        # A millionth of a degree is about 10 cm.
+        assert np.abs(fast[:, 0] - longitudes).max() < 1e-6
+        assert np.abs(fast[:, 1] - latitudes).max() < 1e-6

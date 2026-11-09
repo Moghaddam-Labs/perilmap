@@ -106,6 +106,58 @@ class NearestZones:
             raise ResultError("The search radius must be above zero.")
 
 
+# A polygon is a list of rings of (longitude, latitude) points. The first ring is its outside edge
+# and any others are holes, as in GeoJSON. Each ring ends on the point it starts from.
+Ring = tuple[tuple[float, float], ...]
+Polygon = tuple[Ring, ...]
+
+
+def _check_polygons(polygons: tuple[Polygon, ...], name: str) -> None:
+    for polygon in polygons:
+        if not polygon:
+            raise ResultError(f"Each {name} polygon needs an outside edge.")
+        for ring in polygon:
+            if len(ring) < 4 or ring[0] != ring[-1]:
+                raise ResultError(f"Each {name} ring needs 4 or more points and must be closed.")
+
+
+@dataclass(frozen=True)
+class ZoneShape:
+    """Where one band's zones lie inside the search area."""
+
+    band: str
+    polygons: tuple[Polygon, ...]
+
+    def __post_init__(self) -> None:
+        if not self.band.strip():
+            raise ResultError("A zone shape needs a band.")
+        if not self.polygons:
+            raise ResultError("A zone shape needs at least one polygon.")
+        _check_polygons(self.polygons, "zone")
+
+
+@dataclass(frozen=True)
+class ZoneMap:
+    """A peril's zones around a location, for drawing on a map.
+
+    It must come from the same data and search area as the peril's nearest zones, so the map and
+    the distances agree. Areas with no data are included, so a blank part of the map can't be
+    mistaken for an area with no zones.
+    """
+
+    search_radius_metres: float
+    shapes: tuple[ZoneShape, ...]
+    no_data_areas: tuple[Polygon, ...] = ()
+
+    def __post_init__(self) -> None:
+        if self.search_radius_metres <= 0:
+            raise ResultError("The search radius must be above zero.")
+        bands = [shape.band for shape in self.shapes]
+        if len(set(bands)) != len(bands):
+            raise ResultError("Each band can only have one shape.")
+        _check_polygons(self.no_data_areas, "no data")
+
+
 @dataclass(frozen=True)
 class AreaComparison:
     """How an area compares with the wider region, not a risk rating."""

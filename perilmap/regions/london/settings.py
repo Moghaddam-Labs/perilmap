@@ -17,6 +17,8 @@ BAND_ORDER: tuple[str, ...] = ("High", "Medium", "Low", "Very Low")
 GRID_RESOLUTION_METRES = 5
 COVERAGE_SQUARE_METRES = 1_000
 DEFAULT_RADIUS_METRES = 1_000
+# Zone outlines are smoothed by up to half a grid square, so their edges don't look like steps.
+SMOOTHING_METRES = GRID_RESOLUTION_METRES / 2
 
 
 @dataclass(frozen=True)

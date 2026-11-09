@@ -21,7 +21,22 @@ const POSTCODE = {
   attribution: "Postcode lookup by postcodes.io",
 };
 
-async function checkLocation(page: Page, answer: { status: number; body: unknown }) {
+const zoneFixture = (perilId: string) =>
+  JSON.parse(
+    readFileSync(
+      resolve(
+        process.cwd(),
+        `tests/e2e/fixtures/zone-map-thames_wapping-${perilId.replace("flood_", "")}.json`,
+      ),
+      "utf8",
+    ),
+  );
+
+async function checkLocation(
+  page: Page,
+  answer: { status: number; body: unknown },
+  zoneStatus: () => number = () => 200,
+) {
   const problems: string[] = [];
   page.on("console", (message) => {
     if (message.type() === "error") problems.push(message.text());
@@ -36,12 +51,26 @@ async function checkLocation(page: Page, answer: { status: number; body: unknown
     sent.push(route.request().postDataJSON());
     return route.fulfill({ status: answer.status, json: answer.body });
   });
+  const zoneRequests: { url: string; body: { peril_id: string } }[] = [];
+  await page.route(`${API}/v1/zone-maps`, (route) => {
+    const body = route.request().postDataJSON();
+    zoneRequests.push({ url: route.request().url(), body });
+    const status = zoneStatus();
+    return status === 200
+      ? route.fulfill({ json: zoneFixture(body.peril_id) })
+      : route.fulfill({ status, json: { detail: "Down" } });
+  });
   await page.goto("/");
   await page.getByLabel("Postcode").fill("E1W 1AA");
   await page.getByRole("button", { name: "Find postcode" }).click();
   await expect(page.locator(".maplibregl-canvas")).toBeVisible();
   await page.getByRole("button", { name: "Check this location" }).click();
-  return { problems, sent };
+  return { problems, sent, zoneRequests };
+}
+
+async function mapPicture(page: Page) {
+  await page.waitForTimeout(800);
+  return page.locator(".maplibregl-canvas").screenshot();
 }
 
 test("checking a location shows a card for each peril", async ({ page }) => {
@@ -150,3 +179,85 @@ for (const colorScheme of ["light", "dark"] as const) {
     ).toEqual([]);
   });
 }
+
+test("after a check, the map shows rivers and sea zones around the spot", async ({ page }) => {
+  const { problems, zoneRequests } = await checkLocation(page, {
+    status: 200,
+    body: fixture("thames_wapping"),
+  });
+  await expect(
+    page.getByText("Showing rivers and sea flood zones within 1 km of the checked spot."),
+  ).toBeVisible();
+  await expect(page.getByRole("radio", { name: "Rivers and sea" })).toBeChecked();
+  const key = page.getByRole("list", { name: "Map key" });
+  for (const row of ["High", "Medium", "Low", "Very Low", "Search area"]) {
+    await expect(key.getByText(row, { exact: true })).toBeVisible();
+  }
+  expect(zoneRequests).toEqual([
+    {
+      url: `${API}/v1/zone-maps`,
+      body: { latitude: 51.5045, longitude: -0.056, peril_id: "flood_rivers_and_sea" },
+    },
+  ]);
+  expect(problems).toEqual([]);
+});
+
+test("switching layers redraws the map and keeps zones already loaded", async ({ page }) => {
+  const { zoneRequests } = await checkLocation(page, {
+    status: 200,
+    body: fixture("thames_wapping"),
+  });
+  await expect(page.getByText(/Showing rivers and sea/)).toBeVisible();
+  const rivers = await mapPicture(page);
+  await page.getByRole("radio", { name: "Surface water" }).check();
+  await expect(page.getByText(/Showing surface water flood zones/)).toBeVisible();
+  const surface = await mapPicture(page);
+  await page.getByRole("radio", { name: "None" }).check();
+  await expect(page.getByText(/No flood zones are drawn/)).toBeVisible();
+  await expect(page.getByRole("list", { name: "Map key" }).getByText("High")).toHaveCount(0);
+  const none = await mapPicture(page);
+  expect(rivers.equals(surface)).toBe(false);
+  expect(rivers.equals(none)).toBe(false);
+  await page.getByRole("radio", { name: "Rivers and sea" }).check();
+  await expect(page.getByText(/Showing rivers and sea/)).toBeVisible();
+  expect(zoneRequests.map((request) => request.body.peril_id)).toEqual([
+    "flood_rivers_and_sea",
+    "flood_surface_water",
+  ]);
+});
+
+test("if the zones can't load, the results stay and it can try again", async ({ page }) => {
+  let status = 503;
+  const { zoneRequests } = await checkLocation(
+    page,
+    { status: 200, body: fixture("thames_wapping") },
+    () => status,
+  );
+  const alert = page.getByRole("alert").filter({ hasText: "flood zones" });
+  await expect(alert).toContainText(
+    "The flood zones couldn't load. The results below aren't affected.",
+  );
+  await expect(page.getByRole("article").first()).toBeVisible();
+  status = 200;
+  await alert.getByRole("button", { name: "Try again" }).click();
+  await expect(page.getByText(/Showing rivers and sea/)).toBeVisible();
+  expect(zoneRequests).toHaveLength(2);
+});
+
+test("outside London, there are no zones to choose", async ({ page }) => {
+  const { zoneRequests } = await checkLocation(page, { status: 200, body: fixture("reading") });
+  await expect(
+    page.getByRole("heading", { level: 2, name: "Not available here yet" }),
+  ).toBeVisible();
+  await expect(page.getByRole("group", { name: "Flood zones on the map" })).toHaveCount(0);
+  expect(zoneRequests).toEqual([]);
+});
+
+test("moving the pin says the map is for the last checked spot", async ({ page }) => {
+  await checkLocation(page, { status: 200, body: fixture("thames_wapping") });
+  await expect(page.getByText(/Showing rivers and sea/)).toBeVisible();
+  const pin = page.getByRole("button", { name: /Pin marking the home/ });
+  await pin.focus();
+  await pin.press("ArrowLeft");
+  await expect(page.getByText(/check again to update the map/)).toBeVisible();
+});
