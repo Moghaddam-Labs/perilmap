@@ -1,0 +1,123 @@
+.page {
+  display: grid;
+  gap: var(--space-6);
+  max-width: var(--page);
+  margin-inline: auto;
+  padding: var(--space-6) var(--gutter) var(--space-7);
+}
+
+.header {
+  display: grid;
+  gap: var(--space-3);
+  max-width: var(--measure);
+}
+
+.lead {
+  font-size: var(--text-lg);
+  font-weight: 650;
+  line-height: 1.35;
+}
+
+.updated {
+  color: var(--ink-soft);
+  font-size: var(--text-sm);
+}
+
+.body {
+  display: grid;
+  gap: var(--space-6);
+}
+
+.section {
+  display: grid;
+  gap: var(--space-3);
+  max-width: var(--measure);
+}
+
+.section > ul,
+.section > ol {
+  display: grid;
+  gap: var(--space-2);
+  padding-inline-start: var(--space-5);
+}
+
+.section h3 {
+  margin-block-start: var(--space-2);
+  font-size: var(--text-md);
+}
+
+/* A panel for a list of providers or sources, each with a short note. */
+.panel {
+  display: grid;
+  gap: var(--space-4);
+  margin: 0;
+  padding: var(--space-5);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-panel);
+  background: var(--surface);
+  list-style: none;
+}
+
+.panel h3 {
+  margin: 0;
+}
+
+.panel > li {
+  display: grid;
+  gap: var(--space-1);
+}
+
+.panel > li + li {
+  padding-block-start: var(--space-4);
+  border-top: 1px solid var(--line);
+}
+
+.note {
+  padding: var(--space-4) var(--space-5);
+  border-inline-start: 4px solid var(--ink);
+  border-radius: var(--radius-key);
+  background: var(--surface);
+  font-weight: 650;
+}
+
+.facts {
+  display: grid;
+  grid-template-columns: max-content minmax(0, 1fr);
+  gap: var(--space-1) var(--space-4);
+  margin: 0;
+}
+
+.facts dt {
+  font-weight: 700;
+}
+
+.facts dd {
+  margin: 0;
+}
+
+@media (max-width: 34rem) {
+  .facts {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .facts dd + dt {
+    margin-block-start: var(--space-2);
+  }
+}
+
+@media print {
+  .page {
+    padding-block: 0;
+  }
+
+  .panel,
+  .note {
+    break-inside: avoid;
+  }
+
+  .section a[href^="http"]::after {
+    content: " (" attr(href) ")";
+    overflow-wrap: anywhere;
+    font-weight: 400;
+  }
+}

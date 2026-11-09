@@ -9,6 +9,16 @@ All notable changes to PerilMap are recorded here. The format follows
 
 ### Added
 
+- A privacy page. It explains what happens to a search, that there are no cookies or tracking, what
+  each outside service (Vercel, Google Cloud, postcodes.io and OpenFreeMap) can see, how heavy use is
+  limited, and who to contact.
+- An About the data page, covering what PerilMap can and can't tell you, how each result is worked
+  out, what each gap label means, what isn't covered, every data source with its date, and official
+  checks to make.
+- A flood insurance page explaining Flood Re: who it can help, why homes built from 2009 can't use
+  it, Build Back Better, and what to ask an insurer, using Flood Re's own rules.
+- A "Find out more" list under the results, linking to About the data, and to the flood insurance
+  page when a flood zone is nearby.
 - Flood zones on the map. After a check, the map shows the rivers and sea zones within 1 km of the
   spot, with the same patterns as the flood key, a circle for the search area and a key listing only
   the levels shown. Surface water, or no zones, can be chosen instead. Areas with no data are marked,
@@ -59,6 +69,8 @@ All notable changes to PerilMap are recorded here. The format follows
 
 ### Changed
 
+- The top bar now links to About the data and the new privacy page, and the footer links to all three
+  new pages.
 - API replies are now compressed, which shrinks zone maps to about a sixth of their size.
 - CI can now be started by hand from the Actions tab ("Run workflow"), for when GitHub doesn't
   start a run after a merge.

@@ -1,7 +1,9 @@
 "use client";
 
+import Link from "next/link";
 import { forwardRef } from "react";
 import type { Assessment } from "@/lib/api/types";
+import { PAGES } from "@/lib/pages";
 import { printPage } from "@/lib/print";
 import { Button } from "./Button";
 import { Notice } from "./Notice";
@@ -35,6 +37,15 @@ function DataDates({ assessment }: { assessment: Assessment }) {
         ))}
       </dl>
     </div>
+  );
+}
+
+/** True when any flood check found a zone within its search area. */
+function nearFloodZone(assessment: Assessment) {
+  return assessment.results.some(
+    (result) =>
+      result.measurement?.type === "nearest_zones" &&
+      result.measurement.zones.some((zone) => zone.metres !== null),
   );
 }
 
@@ -93,6 +104,21 @@ export const ResultsSection = forwardRef<HTMLHeadingElement, ResultsSectionProps
                 </ul>
               </div>
             )}
+            <div className={styles.further}>
+              <h3>Find out more</h3>
+              <ul>
+                <li>
+                  <Link href={PAGES.about.href}>{PAGES.about.label}</Link>: how these results are
+                  worked out, and what they can&apos;t tell you
+                </li>
+                {nearFloodZone(assessment) && (
+                  <li>
+                    <Link href={PAGES.floodInsurance.href}>{PAGES.floodInsurance.label}</Link>: help
+                    finding home insurance near a flood zone
+                  </li>
+                )}
+              </ul>
+            </div>
           </>
         )}
       </section>

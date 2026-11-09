@@ -1,7 +1,7 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test, type Page } from "@playwright/test";
 
-const PAGES = ["/", "/design"];
+const PAGES = ["/", "/design", "/privacy", "/about", "/flood-insurance"];
 
 function watchForBlockedContent(page: Page) {
   const problems: string[] = [];
@@ -70,9 +70,39 @@ test("the top bar's links lead to real parts of the page", async ({ page }) => {
   await nav.getByRole("link", { name: "How it works" }).click();
   await expect(page).toHaveURL(/#how-it-works$/);
   await expect(page.locator("#how-it-works")).toBeInViewport();
+  await nav.getByRole("link", { name: "About the data" }).click();
+  await expect(page).toHaveURL(/\/about$/);
+  await expect(page.getByRole("heading", { level: 1, name: "About the data" })).toBeVisible();
   await nav.getByRole("link", { name: "Privacy" }).click();
-  await expect(page).toHaveURL(/#privacy$/);
-  await expect(page.locator("#privacy")).toBeInViewport();
+  await expect(page).toHaveURL(/\/privacy$/);
+  await expect(page.getByRole("heading", { level: 1, name: "Privacy" })).toBeVisible();
+});
+
+test("the footer leads to every reading page", async ({ page }) => {
+  await page.goto("/");
+  const footer = page.getByRole("contentinfo");
+  for (const [name, heading] of [
+    ["About the data", "About the data"],
+    ["Flood insurance and Flood Re", "Flood insurance and Flood Re"],
+    ["Read the privacy notice", "Privacy"],
+  ]) {
+    await page.goto("/");
+    await footer.getByRole("link", { name: name! }).click();
+    await expect(page.getByRole("heading", { level: 1, name: heading! })).toBeVisible();
+  }
+});
+
+test("each reading page has a clear title and one main heading", async ({ page }) => {
+  for (const [path, title] of [
+    ["/privacy", "Privacy: PerilMap"],
+    ["/about", "About the data: PerilMap"],
+    ["/flood-insurance", "Flood insurance and Flood Re: PerilMap"],
+  ]) {
+    await page.goto(path!);
+    await expect(page).toHaveTitle(title!);
+    await expect(page.getByRole("heading", { level: 1 })).toHaveCount(1);
+    await expect(page.getByText(/^Last updated \d{1,2} \w+ \d{4}$/)).toBeVisible();
+  }
 });
 
 test("the top bar's links also work from another page", async ({ page }) => {
