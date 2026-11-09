@@ -83,3 +83,6 @@ if ((failures > 0)); then
   exit 1
 fi
 echo "All checks passed."
+echo
+# The rate limit check above uses up this computer's allowance for a minute.
+echo "Wait a minute before testing the website from this computer, or searches will be refused."

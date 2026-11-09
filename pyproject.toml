@@ -1,6 +1,6 @@
 [project]
 name = "perilmap"
-version = "0.1.0"
+version = "1.0.0"
 description = "Shows how exposed the area around a home is to climate-related perils."
 readme = "README.md"
 requires-python = ">=3.11"

@@ -271,6 +271,13 @@ export function LocationMap({ start, pin, overlay, onPinChange, onUnavailable }:
         return;
       }
       mapRef.current = map;
+      // MapLibre only calls it "Map". Say what the keys do, and how to reach the pin.
+      map
+        .getCanvas()
+        .setAttribute(
+          "aria-label",
+          "Map. Use the arrow keys to move the map. Press Tab to reach the pin and move it instead.",
+        );
       map.touchZoomRotate.disableRotation();
       map.keyboard.disableRotation();
       map.addControl(new maplibre.NavigationControl({ showCompass: false }), "top-right");
@@ -311,6 +318,8 @@ export function LocationMap({ start, pin, overlay, onPinChange, onUnavailable }:
         const direction = ARROWS[event.key];
         if (!direction) return;
         event.preventDefault();
+        // Otherwise the map hears the same key and pans, so the pin seems to go the wrong way.
+        event.stopPropagation();
         const step = event.shiftKey ? KEY_STEP_PIXELS * 5 : KEY_STEP_PIXELS;
         const point = map.project(marker.getLngLat());
         const moved = map.unproject([point.x + direction[0] * step, point.y + direction[1] * step]);

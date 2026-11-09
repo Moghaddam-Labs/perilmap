@@ -261,3 +261,33 @@ test("moving the pin says the map is for the last checked spot", async ({ page }
   await pin.press("ArrowLeft");
   await expect(page.getByText(/check again to update the map/)).toBeVisible();
 });
+
+test("the arrow keys move the pin, not the map", async ({ page }) => {
+  await checkLocation(page, { status: 200, body: fixture("thames_wapping") });
+  const pin = page.getByRole("button", { name: /Pin marking the home/ });
+  // After a check the map zooms out to the search area, so wait until the pin stops moving.
+  const settled = async () => {
+    let last = await pin.boundingBox();
+    for (;;) {
+      await page.waitForTimeout(250);
+      const now = await pin.boundingBox();
+      if (now?.x === last?.x && now?.y === last?.y) return now!;
+      last = now;
+    }
+  };
+  await pin.focus();
+  const before = await settled();
+  await pin.press("ArrowLeft");
+  const after = await settled();
+  // Ten pixels a press, and the map stays where it is.
+  expect(Math.round(after!.x - before!.x)).toBe(-10);
+  await expect(pin).toBeFocused();
+});
+
+test("the map says how its keys work and how to reach the pin", async ({ page }) => {
+  await checkLocation(page, { status: 200, body: fixture("thames_wapping") });
+  await expect(page.locator(".maplibregl-canvas")).toHaveAttribute(
+    "aria-label",
+    /arrow keys to move the map.*reach the pin/,
+  );
+});
