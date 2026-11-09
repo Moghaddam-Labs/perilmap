@@ -76,7 +76,7 @@ def create_app(
 
     app = FastAPI(
         title="PerilMap API",
-        version="0.1.0",
+        version="1.0.0",
         lifespan=lifespan,
         docs_url="/docs" if settings.show_docs else None,
         redoc_url=None,

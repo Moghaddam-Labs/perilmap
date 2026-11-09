@@ -6,20 +6,24 @@ PerilMap shows how exposed the area around a home is to climate-related perils, 
 quote arrives. Find your postcode, mark your home on the map, and get clear risk bands and
 plain-English explanations.
 
-> **Status: in development.** The API is live and the website is being built. The website isn't public
-> yet.
+**Try it: [perilmap.vercel.app](https://perilmap.vercel.app)**
 
-**Guidance only.** Results will not be an insurance quote, survey or financial advice. They describe
-risk to an area of land, not whether a particular property will flood.
+**Guidance only.** Results aren't an insurance quote, survey or financial advice. They describe risk
+to an area of land, not whether a particular property will flood.
 
-## Planned scope
+## What it covers
 
-- **England first, starting with London.** Each region is a plug-in, so the core never hard-codes one.
-- **Flooding:** rivers and sea, and surface water, with the distance to the nearest zone in each band.
-- **Subsidence:** a London-wide explainer, not a rating for each home. The free national data isn't suitable for local use.
-- **Heat:** how an area's modelled average summer temperature compares across London, not a risk rating.
+- **Greater London, with England next.** Each region is a plug-in, so the core never hard-codes one.
+- **Flooding:** rivers and sea, and surface water, with the distance to the nearest zone in each band
+  and the zones drawn on the map.
+- **Subsidence:** a London-wide explainer, not a rating for each home. The free national data isn't
+  suitable for local use.
+- **Heat:** how an area's modelled average summer temperature compares across London, not a risk
+  rating.
 
-Groundwater and reservoir flooding won't be covered at launch, and the app will say so plainly.
+Groundwater, reservoir and sewer flooding aren't covered yet, and the site says so plainly. The
+website's [About the data](https://perilmap.vercel.app/about) and
+[Privacy](https://perilmap.vercel.app/privacy) pages explain the limits and what happens to a search.
 
 ## How the code is organised
 

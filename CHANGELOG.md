@@ -6,6 +6,9 @@ All notable changes to PerilMap are recorded here. The format follows
 
 ## [Unreleased]
 
+## [1.0.0] - 2026-11-09
+
+First public release, live at [perilmap.vercel.app](https://perilmap.vercel.app).
 
 ### Added
 
@@ -69,6 +72,10 @@ All notable changes to PerilMap are recorded here. The format follows
 
 ### Changed
 
+- The README links to the live site and describes what PerilMap covers now, instead of what was
+  planned.
+- The deployment check now ends by saying to wait a minute before testing the website, because its
+  rate limit check uses up that computer's allowance.
 - The top bar now links to About the data and the new privacy page, and the footer links to all three
   new pages.
 - API replies are now compressed, which shrinks zone maps to about a sixth of their size.
@@ -102,6 +109,9 @@ All notable changes to PerilMap are recorded here. The format follows
 
 ### Fixed
 
+- The arrow keys now move the pin without also moving the map. Before, the map panned the other way
+  at the same time, so the pin seemed to slide in the wrong direction.
+- The map now tells screen reader users how its arrow keys work and how to reach the pin.
 - Notices now keep the class they're given, so error messages are left off printouts as intended.
 - The website's lint tools now use minimatch 11.0.5, which fixes a moderate denial of service
   advisory (GHSA-g3hv-75wg-m249). ESLint and typescript-eslint still ask for version 10, so an npm
@@ -111,3 +121,5 @@ All notable changes to PerilMap are recorded here. The format follows
 - The image cleanup command in the deployment guide now applies the policy, using `--no-dry-run`.
 - Pinned dependencies so they install on Python 3.11, and CI now tests both 3.11 and 3.13.
 
+[Unreleased]: https://github.com/Moghaddam-Labs/perilmap/compare/v1.0.0...HEAD
+[1.0.0]: https://github.com/Moghaddam-Labs/perilmap/releases/tag/v1.0.0
