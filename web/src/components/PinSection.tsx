@@ -1,14 +1,17 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { useEffect, useRef, useState } from "react";
-import { ApiError, assessLocation, type ApiProblem } from "@/lib/api/client";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { ApiError, assessLocation, fetchZoneMap, type ApiProblem } from "@/lib/api/client";
 import type { Assessment } from "@/lib/api/types";
 import { describePin, distanceMetres, isInsideLondon, type Position } from "@/lib/geo";
+import { FLOOD_MAP_LAYERS } from "@/lib/zoneMap";
 import { Button } from "./Button";
+import type { ZoneOverlay } from "./LocationMap";
 import { Notice } from "./Notice";
 import type { FoundPostcode } from "./PostcodeSearch";
 import { ResultsSection } from "./ResultsSection";
+import { NO_LAYER, ZoneMapControls, type ZoneMapState } from "./ZoneMapControls";
 import styles from "./PinSection.module.css";
 
 const LocationMap = dynamic(() => import("./LocationMap").then((module) => module.LocationMap), {
@@ -23,10 +26,37 @@ const PROBLEMS: Record<ApiProblem, string> = {
   unavailable: "Results aren't available right now. Try again in a few minutes.",
 };
 
+const ZONE_PROBLEMS: Record<ApiProblem, string> = {
+  invalid: "The flood zones couldn't be drawn for this spot.",
+  not_found: "The flood zones couldn't be drawn for this spot.",
+  busy: "The flood zones couldn't load, because there have been too many checks in a short time.",
+  unavailable: "The flood zones couldn't load.",
+};
+
+const DEFAULT_RADIUS_METRES = 1_000;
+
 interface Checked {
+  id: number;
   pin: Position;
   assessment: Assessment;
   at: Date;
+}
+
+/** The flood checks that have results here, so their zones can be drawn. */
+function drawableLayers(assessment: Assessment) {
+  return FLOOD_MAP_LAYERS.filter((layer) =>
+    assessment.results.some(
+      (result) => result.peril_id === layer.perilId && result.status !== "not_available_here",
+    ),
+  );
+}
+
+function searchRadius(assessment: Assessment) {
+  for (const result of assessment.results) {
+    if (result.measurement?.type === "nearest_zones")
+      return result.measurement.search_radius_metres;
+  }
+  return DEFAULT_RADIUS_METRES;
 }
 
 const CHECKED_AT = new Intl.DateTimeFormat("en-GB", { dateStyle: "long", timeStyle: "short" });
@@ -41,8 +71,23 @@ export function PinSection({ found }: { found: FoundPostcode }) {
   const [checking, setChecking] = useState(false);
   const [problem, setProblem] = useState<string | null>(null);
   const [checked, setChecked] = useState<Checked | null>(null);
+  const [layer, setLayer] = useState<string>(FLOOD_MAP_LAYERS[0]?.perilId ?? NO_LAYER);
+  const [zoneMaps, setZoneMaps] = useState<Record<string, ZoneMapState>>({});
+  const checkCount = useRef(0);
+  const zoneRequests = useRef<AbortController[]>([]);
 
-  useEffect(() => () => requestRef.current?.abort(), []);
+  function cancelZoneRequests() {
+    for (const request of zoneRequests.current) request.abort();
+    zoneRequests.current = [];
+  }
+
+  useEffect(
+    () => () => {
+      requestRef.current?.abort();
+      cancelZoneRequests();
+    },
+    [],
+  );
 
   // Results get their own heading, so focus moves there once they arrive.
   useEffect(() => {
@@ -61,13 +106,64 @@ export function PinSection({ found }: { found: FoundPostcode }) {
     setChecking(true);
     try {
       const assessment = await assessLocation(spot, request.signal);
-      setChecked({ pin: spot, assessment, at: new Date() });
+      checkCount.current += 1;
+      const record = { id: checkCount.current, pin: spot, assessment, at: new Date() };
+      cancelZoneRequests();
+      setZoneMaps({});
+      setChecked(record);
+      if (drawableLayers(assessment).some((choice) => choice.perilId === layer)) {
+        loadZones(record, layer);
+      }
     } catch (caught) {
       if (request.signal.aborted) return;
       setProblem(PROBLEMS[caught instanceof ApiError ? caught.problem : "unavailable"]);
     } finally {
       if (requestRef.current === request) setChecking(false);
     }
+  }
+
+  const layers = useMemo(() => (checked ? drawableLayers(checked.assessment) : []), [checked]);
+  const shownLayer = layers.some((choice) => choice.perilId === layer) ? layer : NO_LAYER;
+  const zoneState = shownLayer === NO_LAYER ? null : (zoneMaps[shownLayer] ?? null);
+
+  const radiusMetres = checked ? searchRadius(checked.assessment) : DEFAULT_RADIUS_METRES;
+  const overlay = useMemo<ZoneOverlay | null>(
+    () =>
+      checked && layers.length
+        ? {
+            checkId: checked.id,
+            centre: checked.pin,
+            radiusMetres,
+            zoneMap: zoneState?.status === "ready" ? zoneState.zoneMap : null,
+          }
+        : null,
+    [checked, layers.length, radiusMetres, zoneState],
+  );
+
+  /** Fetches one layer's zones for a check. Once loaded, they're kept until the next check. */
+  function loadZones(spot: Checked, perilId: string) {
+    if (perilId === NO_LAYER) return;
+    const request = new AbortController();
+    zoneRequests.current.push(request);
+    setZoneMaps((maps) => ({ ...maps, [perilId]: { status: "loading" } }));
+    fetchZoneMap(spot.pin, perilId, request.signal)
+      .then((zoneMap) =>
+        setZoneMaps((maps) => ({ ...maps, [perilId]: { status: "ready", zoneMap } })),
+      )
+      .catch((caught: unknown) => {
+        if (request.signal.aborted) return;
+        const problem = caught instanceof ApiError ? caught.problem : "unavailable";
+        setZoneMaps((maps) => ({
+          ...maps,
+          [perilId]: { status: "failed", message: ZONE_PROBLEMS[problem] },
+        }));
+      });
+  }
+
+  function chooseLayer(perilId: string) {
+    setLayer(perilId);
+    const state = zoneMaps[perilId];
+    if (checked && (!state || state.status === "failed")) loadZones(checked, perilId);
   }
 
   useEffect(() => {
@@ -110,8 +206,21 @@ export function PinSection({ found }: { found: FoundPostcode }) {
         <LocationMap
           start={found}
           pin={pin}
+          overlay={overlay}
           onPinChange={setPin}
           onUnavailable={() => setMapUnavailable(true)}
+        />
+      )}
+
+      {checked && layers.length > 0 && !mapUnavailable && (
+        <ZoneMapControls
+          layers={layers}
+          chosen={shownLayer}
+          state={zoneState}
+          radiusMetres={radiusMetres}
+          stale={distanceMetres(checked.pin, pin) > 1}
+          onChoose={chooseLayer}
+          onRetry={() => checked && loadZones(checked, shownLayer)}
         />
       )}
 

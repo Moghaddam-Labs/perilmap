@@ -9,6 +9,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI, HTTPException, Request, Response
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.responses import JSONResponse
 
 from perilmap.api import postcodes
@@ -20,10 +21,13 @@ from perilmap.api.schemas import (
     HealthResponse,
     PostcodeRequest,
     PostcodeResponse,
+    ZoneMapRequest,
+    ZoneMapResponse,
     assessment_response,
+    zone_map_response,
 )
 from perilmap.api.settings import Settings
-from perilmap.core.assessment import RegionRegistry, assess
+from perilmap.core.assessment import RegionRegistry, assess, zone_map
 from perilmap.core.models import Location
 
 logger = logging.getLogger(__name__)
@@ -31,6 +35,7 @@ logger = logging.getLogger(__name__)
 MAX_BODY_BYTES = 1_024
 INVALID_REQUEST = "That request isn't valid. Check it and try again."
 SERVER_ERROR = "Something went wrong on our side. Try again shortly."
+NO_ZONE_MAP = "There's nothing to draw on the map for this check here."
 RATE_LIMITED = "Too many requests. Wait a moment and try again."
 SECURITY_HEADERS = {
     "Cache-Control": "no-store",
@@ -125,6 +130,15 @@ def create_app(
             max_age=600,
         )
 
+    # Flood zone shapes make results large, and they shrink to about a sixth when compressed.
+    # Added last, so it wraps everything else and compresses every reply.
+    # Level 5 is several times quicker than the default 9, for almost the same size.
+    app.add_middleware(GZipMiddleware, minimum_size=1_024, compresslevel=5)
+
+    # Zone maps are large, and shrink to about a sixth when compressed. Added last, so it wraps
+    # everything else. Level 5 is much quicker than the default 9, for almost the same size.
+    app.add_middleware(GZipMiddleware, compresslevel=5)
+
     @app.exception_handler(RequestValidationError)
     async def invalid_request(request: Request, error: RequestValidationError) -> JSONResponse:
         # FastAPI's default reply repeats the input, which could be someone's location.
@@ -144,6 +158,18 @@ def create_app(
     def create_assessment(body: AssessmentRequest, request: Request) -> AssessmentResponse:
         location = Location(body.latitude, body.longitude)
         return assessment_response(assess(location, request.app.state.registry))
+
+    @app.post(
+        "/v1/zone-maps",
+        response_model=ZoneMapResponse,
+        responses={**errors, 404: {"model": ErrorResponse}},
+    )
+    def create_zone_map(body: ZoneMapRequest, request: Request) -> ZoneMapResponse:
+        location = Location(body.latitude, body.longitude)
+        found = zone_map(location, body.peril_id, request.app.state.registry)
+        if found is None:
+            raise HTTPException(404, NO_ZONE_MAP)
+        return zone_map_response(body.peril_id, found)
 
     @app.post(
         "/v1/postcodes/lookup",

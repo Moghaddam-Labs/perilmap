@@ -389,6 +389,88 @@
         "title": "SourceResponse",
         "type": "object"
       },
+      "ZoneMapRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "latitude": {
+            "maximum": 90.0,
+            "minimum": -90.0,
+            "title": "Latitude",
+            "type": "number"
+          },
+          "longitude": {
+            "maximum": 180.0,
+            "minimum": -180.0,
+            "title": "Longitude",
+            "type": "number"
+          },
+          "peril_id": {
+            "pattern": "^[a-z][a-z0-9_]{0,63}$",
+            "title": "Peril Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "latitude",
+          "longitude",
+          "peril_id"
+        ],
+        "title": "ZoneMapRequest",
+        "type": "object"
+      },
+      "ZoneMapResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "no_data_areas": {
+            "description": "Parts of the search area with no data, which must not look clear.",
+            "items": {
+              "items": {
+                "items": {
+                  "maxItems": 2,
+                  "minItems": 2,
+                  "prefixItems": [
+                    {
+                      "type": "number"
+                    },
+                    {
+                      "type": "number"
+                    }
+                  ],
+                  "type": "array"
+                },
+                "type": "array"
+              },
+              "type": "array"
+            },
+            "title": "No Data Areas",
+            "type": "array"
+          },
+          "peril_id": {
+            "title": "Peril Id",
+            "type": "string"
+          },
+          "search_radius_metres": {
+            "title": "Search Radius Metres",
+            "type": "number"
+          },
+          "shapes": {
+            "description": "Where each band's zones lie in the search area, highest band first.",
+            "items": {
+              "$ref": "#/components/schemas/ZoneShapeResponse"
+            },
+            "title": "Shapes",
+            "type": "array"
+          }
+        },
+        "required": [
+          "peril_id",
+          "search_radius_metres",
+          "shapes",
+          "no_data_areas"
+        ],
+        "title": "ZoneMapResponse",
+        "type": "object"
+      },
       "ZoneResponse": {
         "additionalProperties": false,
         "properties": {
@@ -418,6 +500,44 @@
           "label"
         ],
         "title": "ZoneResponse",
+        "type": "object"
+      },
+      "ZoneShapeResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "band": {
+            "title": "Band",
+            "type": "string"
+          },
+          "coordinates": {
+            "items": {
+              "items": {
+                "items": {
+                  "maxItems": 2,
+                  "minItems": 2,
+                  "prefixItems": [
+                    {
+                      "type": "number"
+                    },
+                    {
+                      "type": "number"
+                    }
+                  ],
+                  "type": "array"
+                },
+                "type": "array"
+              },
+              "type": "array"
+            },
+            "title": "Coordinates",
+            "type": "array"
+          }
+        },
+        "required": [
+          "band",
+          "coordinates"
+        ],
+        "title": "ZoneShapeResponse",
         "type": "object"
       }
     }
@@ -580,6 +700,74 @@
           }
         },
         "summary": "Lookup Postcode"
+      }
+    },
+    "/v1/zone-maps": {
+      "post": {
+        "operationId": "create_zone_map_v1_zone_maps_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ZoneMapRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ZoneMapResponse"
+                }
+              }
+            },
+            "description": "200"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "404"
+          },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "413"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "422"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "429"
+          }
+        },
+        "summary": "Create Zone Map"
       }
     }
   }

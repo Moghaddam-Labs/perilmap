@@ -5,7 +5,7 @@
 
 import { apiOrigin } from "@/lib/config";
 import type { Position } from "@/lib/geo";
-import type { Assessment, PostcodeResult } from "./types";
+import type { Assessment, PostcodeResult, ZoneMap } from "./types";
 
 export type ApiProblem = "invalid" | "not_found" | "busy" | "unavailable";
 
@@ -82,15 +82,38 @@ function isAssessment(value: unknown): value is Assessment {
   );
 }
 
-/** Asks the API what's around a spot. About 10 cm is far more exact than any of the data. */
-export async function assessLocation({ latitude, longitude }: Position, signal?: AbortSignal) {
+/** About 10 cm, which is far more exact than any of the data. */
+function rounded({ latitude, longitude }: Position) {
   const round = (degrees: number) => Math.round(degrees * 1e6) / 1e6;
-  const result = await postJson(
-    "/v1/assessments",
-    { latitude: round(latitude), longitude: round(longitude) },
-    signal,
-  );
+  return { latitude: round(latitude), longitude: round(longitude) };
+}
+
+/** Asks the API what's around a spot. */
+export async function assessLocation(spot: Position, signal?: AbortSignal) {
+  const result = await postJson("/v1/assessments", rounded(spot), signal);
   if (!isAssessment(result)) {
+    throw new ApiError("unavailable");
+  }
+  return result;
+}
+
+function isZoneMap(value: unknown): value is ZoneMap {
+  const result = value as Partial<ZoneMap> | null;
+  return (
+    typeof result?.peril_id === "string" &&
+    Number.isFinite(result.search_radius_metres) &&
+    Array.isArray(result.shapes) &&
+    result.shapes.every(
+      (shape) => typeof shape?.band === "string" && Array.isArray(shape.coordinates),
+    ) &&
+    Array.isArray(result.no_data_areas)
+  );
+}
+
+/** Asks the API for one check's zones around a spot, to draw on the map. */
+export async function fetchZoneMap(spot: Position, perilId: string, signal?: AbortSignal) {
+  const result = await postJson("/v1/zone-maps", { ...rounded(spot), peril_id: perilId }, signal);
+  if (!isZoneMap(result) || result.peril_id !== perilId) {
     throw new ApiError("unavailable");
   }
   return result;

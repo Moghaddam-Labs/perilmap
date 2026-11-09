@@ -14,6 +14,7 @@ from perilmap.core.models import (
     Measurement,
     NearestZones,
     PerilResult,
+    ZoneMap,
 )
 
 
@@ -24,6 +25,10 @@ class Strict(BaseModel):
 class AssessmentRequest(Strict):
     latitude: Annotated[float, Field(ge=-90, le=90, allow_inf_nan=False, strict=True)]
     longitude: Annotated[float, Field(ge=-180, le=180, allow_inf_nan=False, strict=True)]
+
+
+class ZoneMapRequest(AssessmentRequest):
+    peril_id: Annotated[str, Field(pattern=r"^[a-z][a-z0-9_]{0,63}$")]
 
 
 class PostcodeRequest(Strict):
@@ -98,6 +103,28 @@ class AssessmentResponse(Strict):
     results: tuple[PerilResponse, ...]
 
 
+# GeoJSON MultiPolygon coordinates: polygons, each a list of rings of [longitude, latitude].
+MultiPolygonCoordinates = tuple[tuple[tuple[tuple[float, float], ...], ...], ...]
+
+
+class ZoneShapeResponse(Strict):
+    band: str
+    coordinates: MultiPolygonCoordinates
+
+
+class ZoneMapResponse(Strict):
+    peril_id: str
+    search_radius_metres: float
+    shapes: Annotated[
+        tuple[ZoneShapeResponse, ...],
+        Field(description="Where each band's zones lie in the search area, highest band first."),
+    ]
+    no_data_areas: Annotated[
+        MultiPolygonCoordinates,
+        Field(description="Parts of the search area with no data, which must not look clear."),
+    ]
+
+
 class HealthResponse(Strict):
     status: Literal["ok"] = "ok"
 
@@ -170,4 +197,16 @@ def assessment_response(assessment: Assessment) -> AssessmentResponse:
         disclaimer=assessment.disclaimer,
         not_covered=assessment.not_covered,
         results=tuple(_result(result) for result in assessment.results),
+    )
+
+
+def zone_map_response(peril_id: str, zone_map: ZoneMap) -> ZoneMapResponse:
+    return ZoneMapResponse(
+        peril_id=peril_id,
+        search_radius_metres=zone_map.search_radius_metres,
+        shapes=tuple(
+            ZoneShapeResponse(band=shape.band, coordinates=shape.polygons)
+            for shape in zone_map.shapes
+        ),
+        no_data_areas=zone_map.no_data_areas,
     )

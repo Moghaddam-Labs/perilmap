@@ -9,6 +9,14 @@ All notable changes to PerilMap are recorded here. The format follows
 
 ### Added
 
+- Flood zones on the map. After a check, the map shows the rivers and sea zones within 1 km of the
+  spot, with the same patterns as the flood key, a circle for the search area and a key listing only
+  the levels shown. Surface water, or no zones, can be chosen instead. Areas with no data are marked,
+  so they can't look clear. The zones also appear in the printout.
+- `POST /v1/zone-maps` in the API, which traces each flood level within the search area from the
+  same grid squares the distances are measured from, so the map and the result cards always agree.
+  Edges are smoothed by up to half a square. Each layer is fetched only when it's shown, which keeps
+  checks themselves fast.
 - Print or save the results as a PDF. The printout has a short report header with the location and
   date, an image of the map with the pin, every result with its sources open and link addresses
   written out, and the data credits. It always uses light colours, and results that are out of date
@@ -51,6 +59,7 @@ All notable changes to PerilMap are recorded here. The format follows
 
 ### Changed
 
+- API replies are now compressed, which shrinks zone maps to about a sixth of their size.
 - CI can now be started by hand from the Actions tab ("Run workflow"), for when GitHub doesn't
   start a run after a merge.
 - Bezel Charts is updated to v1.1.0, for its stacked bars and slanted labels.
@@ -81,6 +90,7 @@ All notable changes to PerilMap are recorded here. The format follows
 
 ### Fixed
 
+- Notices now keep the class they're given, so error messages are left off printouts as intended.
 - The website's lint tools now use minimatch 11.0.5, which fixes a moderate denial of service
   advisory (GHSA-g3hv-75wg-m249). ESLint and typescript-eslint still ask for version 10, so an npm
   override sets it until they catch up. It only affects development tools, not the live site.

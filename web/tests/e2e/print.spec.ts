@@ -6,6 +6,12 @@ const API = "https://perilmap-api-762501502533.europe-west2.run.app";
 const ASSESSMENT = JSON.parse(
   readFileSync(resolve(process.cwd(), "tests/e2e/fixtures/assessment-thames_wapping.json"), "utf8"),
 );
+const ZONE_MAP = JSON.parse(
+  readFileSync(
+    resolve(process.cwd(), "tests/e2e/fixtures/zone-map-thames_wapping-rivers_and_sea.json"),
+    "utf8",
+  ),
+);
 const BLANK_STYLE = {
   version: 8,
   sources: {},
@@ -24,6 +30,7 @@ async function showResults(page: Page, { mapStyles = true } = {}) {
     }),
   );
   await page.route(`${API}/v1/assessments`, (route) => route.fulfill({ json: ASSESSMENT }));
+  await page.route(`${API}/v1/zone-maps`, (route) => route.fulfill({ json: ZONE_MAP }));
   await page.goto("/");
   await page.getByLabel("Postcode").fill("E1W 1AA");
   await page.getByRole("button", { name: "Find postcode" }).click();
@@ -31,6 +38,7 @@ async function showResults(page: Page, { mapStyles = true } = {}) {
   await page.waitForTimeout(500);
   await page.getByRole("button", { name: "Check this location" }).click();
   await expect(page.getByRole("article").first()).toBeVisible();
+  await expect(page.getByText(/Showing rivers and sea flood zones/)).toBeVisible();
 }
 
 test("printing gets the whole report ready, then puts the page back", async ({ page }) => {
@@ -84,6 +92,9 @@ test("on paper, only the report, the map image and the credits show", async ({ p
   await expect(page.getByRole("heading", { name: "What PerilMap looks at" })).toBeHidden();
   await expect(page.getByText(/© Environment Agency copyright/).last()).toBeVisible();
   await expect(page.getByRole("article")).toHaveCount(4);
+  await expect(page.getByRole("group", { name: "Flood zones on the map" })).toBeHidden();
+  await expect(page.getByText(/Showing rivers and sea flood zones/)).toBeVisible();
+  await expect(page.getByRole("list", { name: "Map key" })).toBeVisible();
 });
 
 test("out of date results can't be printed", async ({ page }) => {

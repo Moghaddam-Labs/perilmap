@@ -1,21 +1,39 @@
 "use client";
 
 import "maplibre-gl/dist/maplibre-gl.css";
-import type { Map as MapLibreMap, Marker } from "maplibre-gl";
+import type { GeoJSONSource, Map as MapLibreMap, Marker } from "maplibre-gl";
 import { useEffect, useRef } from "react";
+import type { ZoneMap } from "@/lib/api/types";
 import { LONDON_BOUNDARY, type Position } from "@/lib/geo";
 import { MAP_BOUNDS, MAP_STYLES, MAP_WORKER_PATH, STREET_ZOOM } from "@/lib/map";
+import { PATTERNS, patternImage, patternImageId, tokenColour } from "@/lib/mapPatterns";
 import { onPrintPrepare } from "@/lib/print";
+import { circleBounds, searchCircle, zoneFeatures } from "@/lib/zoneMap";
 import styles from "./LocationMap.module.css";
+
+/** What to draw around the last checked spot. */
+export interface ZoneOverlay {
+  /** Changes with each new check, so the map can move to show the whole search area once. */
+  checkId: number;
+  centre: Position;
+  radiusMetres: number;
+  /** Null while loading, or when no flood zones are chosen. */
+  zoneMap: ZoneMap | null;
+}
 
 interface LocationMapProps {
   start: Position;
   pin: Position;
+  overlay: ZoneOverlay | null;
   onPinChange: (pin: Position) => void;
   onUnavailable: () => void;
 }
 
 const BOUNDARY = "london-boundary";
+const ZONES = "flood-zones";
+const ZONE_EDGES = "flood-zone-edges";
+const SEARCH_AREA = "search-area";
+const EMPTY: GeoJSON.FeatureCollection = { type: "FeatureCollection", features: [] };
 const KEY_STEP_PIXELS = 10;
 const ARROWS: Record<string, [number, number]> = {
   ArrowUp: [0, -1],
@@ -85,12 +103,86 @@ function addBoundary(map: MapLibreMap) {
       type: "line",
       source: BOUNDARY,
       paint: {
-        "line-color": lightPage() ? "#12332b" : "#eef6f2",
+        "line-color": boundaryColour(),
         "line-width": 2,
         "line-dasharray": [2, 2],
       },
     });
   }
+}
+
+function boundaryColour() {
+  return lightPage() ? "#12332b" : "#eef6f2";
+}
+
+function reducedMotion() {
+  return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+}
+
+/** Adds the zone layers under the map's labels, so street names stay readable on top. */
+function addZoneLayers(map: MapLibreMap) {
+  for (const pattern of PATTERNS) {
+    const id = patternImageId(pattern);
+    if (map.hasImage(id)) continue;
+    const tile = patternImage(pattern);
+    if (tile) map.addImage(id, tile.image, { pixelRatio: tile.pixelRatio });
+  }
+  for (const id of [ZONES, SEARCH_AREA]) {
+    if (!map.getSource(id)) map.addSource(id, { type: "geojson", data: EMPTY });
+  }
+  const labels = map.getStyle().layers.find((layer) => layer.type === "symbol")?.id;
+  if (!map.getLayer(ZONES)) {
+    map.addLayer(
+      {
+        id: ZONES,
+        type: "fill",
+        source: ZONES,
+        paint: {
+          "fill-pattern": ["concat", "perilmap-pattern-", ["get", "pattern"]],
+          "fill-opacity": 0.8,
+        },
+      },
+      labels,
+    );
+  }
+  if (!map.getLayer(ZONE_EDGES)) {
+    map.addLayer(
+      {
+        id: ZONE_EDGES,
+        type: "line",
+        source: ZONES,
+        paint: {
+          "line-color": [
+            "match",
+            ["get", "pattern"],
+            "other",
+            tokenColour("--band-other-mark"),
+            tokenColour("--band-high-fill"),
+          ],
+          // Thin when zoomed out, so edges don't swamp small patches of surface water.
+          "line-width": ["interpolate", ["linear"], ["zoom"], 13, 0.4, 17, 1.2],
+          "line-opacity": ["interpolate", ["linear"], ["zoom"], 13, 0.35, 17, 0.8],
+        },
+      },
+      labels,
+    );
+  }
+  if (!map.getLayer(SEARCH_AREA)) {
+    map.addLayer({
+      id: SEARCH_AREA,
+      type: "line",
+      source: SEARCH_AREA,
+      paint: { "line-color": boundaryColour(), "line-width": 2.5 },
+    });
+  }
+}
+
+function showZones(map: MapLibreMap, overlay: ZoneOverlay | null) {
+  const zones = map.getSource<GeoJSONSource>(ZONES);
+  const area = map.getSource<GeoJSONSource>(SEARCH_AREA);
+  if (!zones || !area) return;
+  zones.setData(zoneFeatures(overlay?.zoneMap ?? null));
+  area.setData(overlay ? searchCircle(overlay.centre, overlay.radiusMetres) : EMPTY);
 }
 
 const PIN_PATH = "M16 38.5S29 25.4 29 15.5a13 13 0 0 0-26 0C3 25.4 16 38.5 16 38.5Z";
@@ -129,12 +221,14 @@ function snapshot(map: MapLibreMap, marker: Marker) {
 }
 
 /** The map, loaded only when needed because MapLibre is large. */
-export function LocationMap({ start, pin, onPinChange, onUnavailable }: LocationMapProps) {
+export function LocationMap({ start, pin, overlay, onPinChange, onUnavailable }: LocationMapProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<MapLibreMap | null>(null);
   const markerRef = useRef<Marker | null>(null);
   const snapshotRef = useRef<HTMLImageElement>(null);
   const styleRef = useRef<string>(MAP_STYLES.light);
+  const overlayRef = useRef<ZoneOverlay | null>(overlay);
+  const fittedRef = useRef<number | null>(null);
   const callbacks = useRef({ onPinChange, onUnavailable });
   useEffect(() => {
     callbacks.current = { onPinChange, onUnavailable };
@@ -185,7 +279,12 @@ export function LocationMap({ start, pin, onPinChange, onUnavailable }: Location
       map.on("load", () => {
         loaded = true;
       });
-      map.on("style.load", () => addBoundary(map));
+      // A new style starts empty, so the boundary and zones are added again each time.
+      map.on("style.load", () => {
+        addBoundary(map);
+        addZoneLayers(map);
+        showZones(map, overlayRef.current);
+      });
       map.on("error", () => {
         // Missing tiles after loading only leave gaps. Failing before it means there's no map.
         if (!loaded) {
@@ -254,6 +353,21 @@ export function LocationMap({ start, pin, onPinChange, onUnavailable }: Location
       map.easeTo({ center: [pin.longitude, pin.latitude] });
     }
   }, [pin.latitude, pin.longitude]);
+
+  // Draws the zones for the last check, and moves the map once per check to show the whole area.
+  useEffect(() => {
+    overlayRef.current = overlay;
+    const map = mapRef.current;
+    if (!map?.getSource(ZONES)) return;
+    showZones(map, overlay);
+    if (overlay && fittedRef.current !== overlay.checkId) {
+      fittedRef.current = overlay.checkId;
+      map.fitBounds(circleBounds(searchCircle(overlay.centre, overlay.radiusMetres)), {
+        padding: 24,
+        animate: !reducedMotion(),
+      });
+    }
+  }, [overlay]);
 
   useEffect(
     () =>

@@ -15,6 +15,8 @@ from perilmap.core.models import (
     ResultError,
     ResultStatus,
     ZoneDistance,
+    ZoneMap,
+    ZoneShape,
 )
 from tests.core.fake_region import COMPARISON, FAKE_SOURCE, make_result
 
@@ -144,3 +146,35 @@ def test_comparison_must_label_our_own_calculation() -> None:
 def test_disclaimer_covers_quote_survey_and_advice() -> None:
     for word in ("insurance quote", "survey", "financial advice"):
         assert word in DISCLAIMER
+
+
+RING = ((0.0, 51.0), (0.001, 51.0), (0.001, 51.001), (0.0, 51.0))
+
+
+def test_zone_shapes_need_a_band_and_closed_rings() -> None:
+    assert ZoneShape("High", ((RING,),)).band == "High"
+    with pytest.raises(ResultError):
+        ZoneShape(" ", ((RING,),))
+    with pytest.raises(ResultError):
+        ZoneShape("High", ())
+    with pytest.raises(ResultError):
+        ZoneShape("High", ((RING[:-1],),))
+    with pytest.raises(ResultError):
+        ZoneShape("High", ((RING[:3],),))
+
+
+def test_a_zone_map_has_one_shape_per_band_and_a_radius() -> None:
+    shape = ZoneShape("High", ((RING,),))
+    assert ZoneMap(1_000, (shape,), ((RING,),)).no_data_areas == ((RING,),)
+    with pytest.raises(ResultError):
+        ZoneMap(1_000, (shape, shape))
+    with pytest.raises(ResultError):
+        ZoneMap(0, (shape,))
+    with pytest.raises(ResultError):
+        ZoneMap(1_000, (), ((RING[:-1],),))
+
+
+def test_perils_draw_nothing_unless_they_choose_to() -> None:
+    from tests.core.fake_region import WarmthPeril
+
+    assert WarmthPeril().zone_map(Location(15, 30)) is None

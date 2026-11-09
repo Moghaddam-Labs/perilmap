@@ -12,9 +12,15 @@ import perilmap.api
 from perilmap.api.app import create_app
 from perilmap.api.settings import Settings
 from perilmap.core.assessment import RegionRegistry
-from perilmap.core.models import DISCLAIMER, NOT_AVAILABLE_HERE
+from perilmap.core.models import DISCLAIMER, NOT_AVAILABLE_HERE, Location, ZoneMap, ZoneShape
 from tests.api.conftest import INSIDE, OUTSIDE, MakeClient
-from tests.core.fake_region import BrokenPeril, FakeRegion, LavaPeril, WarmthPeril
+from tests.core.fake_region import (
+    BrokenPeril,
+    FakeRegion,
+    LavaPeril,
+    WarmthPeril,
+    square_around,
+)
 
 ASSESS = "/v1/assessments"
 LOOKUP = "/v1/postcodes/lookup"
@@ -280,3 +286,66 @@ def test_api_contains_no_region_details() -> None:
         for node in ast.walk(ast.parse(path.read_text(encoding="utf-8"))):
             if isinstance(node, ast.ImportFrom) and node.module:
                 assert not node.module.startswith("perilmap.regions"), path
+
+
+ZONE_MAPS = "/v1/zone-maps"
+
+
+def test_zone_map_returns_shapes_as_geojson_coordinates(client: TestClient) -> None:
+    response = client.post(ZONE_MAPS, json={**INSIDE, "peril_id": "lava"})
+    assert response.status_code == 200
+    body = response.json()
+    assert body["peril_id"] == "lava"
+    assert body["search_radius_metres"] == 1_000
+    assert body["no_data_areas"] == []
+    [shape] = body["shapes"]
+    assert shape["band"] == "High"
+    ring = shape["coordinates"][0][0]
+    assert ring[0] == ring[-1] == [INSIDE["longitude"], INSIDE["latitude"]]
+
+
+@pytest.mark.parametrize(
+    ("body", "status"),
+    [
+        ({**INSIDE, "peril_id": "warmth"}, 404),
+        ({**INSIDE, "peril_id": "no_such_peril"}, 404),
+        ({**OUTSIDE, "peril_id": "lava"}, 404),
+        ({**INSIDE, "peril_id": "../lava"}, 422),
+        ({**INSIDE, "peril_id": "x" * 65}, 422),
+        ({**INSIDE}, 422),
+        ({"peril_id": "lava"}, 422),
+    ],
+)
+def test_zone_map_refuses_what_it_cannot_draw(client: TestClient, body: dict, status: int) -> None:
+    response = client.post(ZONE_MAPS, json=body)
+    assert response.status_code == status
+    assert "15.123" not in response.text
+
+
+def test_zone_map_failure_reveals_nothing(
+    make_client: MakeClient, caplog: pytest.LogCaptureFixture
+) -> None:
+    client = make_client(regions=(FakeRegion(perils=(BrokenPeril(),)),))
+    with caplog.at_level(logging.DEBUG):
+        response = client.post(ZONE_MAPS, json={**INSIDE, "peril_id": "broken"})
+    assert response.status_code == 500
+    for text in (response.text, caplog.text):
+        assert "15.123" not in text and "30.654" not in text
+
+
+class DetailedLavaPeril(LavaPeril):
+    """Draws many small squares, like a detailed surface water map."""
+
+    def zone_map(self, location: Location) -> ZoneMap:
+        squares = tuple(square_around(location, 0.0001 * (step + 1)) for step in range(200))
+        return ZoneMap(1_000, (ZoneShape("High", squares),))
+
+
+def test_large_replies_are_compressed(make_client: MakeClient) -> None:
+    client = make_client(regions=(FakeRegion(perils=(DetailedLavaPeril(),)),))
+    body = {**INSIDE, "peril_id": "lava"}
+    big = client.post(ZONE_MAPS, json=body, headers={"accept-encoding": "gzip"})
+    assert big.headers["content-encoding"] == "gzip"
+    assert big.headers["cache-control"] == "no-store"
+    assert big.headers["content-security-policy"] == "default-src 'none'; frame-ancestors 'none'"
+    assert len(big.json()["shapes"][0]["coordinates"]) == 200

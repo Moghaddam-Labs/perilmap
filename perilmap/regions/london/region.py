@@ -7,6 +7,7 @@ from collections.abc import Sequence
 from pathlib import Path
 
 import rasterio
+import shapely
 from rasterio.warp import transform as reproject
 
 from perilmap.core.models import (
@@ -14,14 +15,18 @@ from perilmap.core.models import (
     Location,
     NearestZones,
     PerilResult,
+    Polygon,
     ResultStatus,
     ZoneDistance,
+    ZoneMap,
+    ZoneShape,
 )
 from perilmap.core.plugins import PerilPlugin, RegionPlugin
 from perilmap.regions.london import wording
-from perilmap.regions.london.coverage import Coverage, CoverageStatus
-from perilmap.regions.london.grids import nearest_by_band
+from perilmap.regions.london.coverage import Coverage, CoverageStatus, square_box
+from perilmap.regions.london.grids import nearest_in_patch, read_patch, zone_outlines
 from perilmap.regions.london.heat import HEAT_FILENAME, HeatLookup
+from perilmap.regions.london.projection import LocalProjection
 from perilmap.regions.london.settings import (
     BNG_CRS,
     DEFAULT_RADIUS_METRES,
@@ -29,6 +34,9 @@ from perilmap.regions.london.settings import (
     FloodSource,
     grid_filename,
 )
+
+# The fitted conversion covers a little more than the search area, so every corner is inside it.
+PROJECTION_MARGIN_METRES = 50
 
 
 class LondonDataError(FileNotFoundError):
@@ -103,7 +111,8 @@ class FloodPeril(PerilPlugin):
         if status is CoverageStatus.NO_DATA:
             return self._gap(title, ResultStatus.NO_DATA, wording.NO_SURFACE_DATA_SUMMARY)
         with self._lock:
-            nearest = nearest_by_band(self._dataset, x, y, self._radius)
+            patch = read_patch(self._dataset, x, y, self._radius)
+        nearest = nearest_in_patch(patch)
         zones = tuple(
             zone_distance(band, nearest.get(band), self._radius) for band in self._source.bands
         )
@@ -121,6 +130,36 @@ class FloodPeril(PerilPlugin):
             caveats=(wording.INCOMPLETE_CAVEAT,) if incomplete else (),
             links=wording.FLOOD_LINKS,
         )
+
+    def zone_map(self, location: Location) -> ZoneMap | None:
+        """Trace the same squares the distances are measured from, plus any areas with no data."""
+        x, y = to_bng(location)
+        status = self._coverage.status(self._source, x, y, self._radius)
+        if status is CoverageStatus.OUTSIDE:
+            return None
+        with self._lock:
+            patch = read_patch(self._dataset, x, y, self._radius)
+        projection = LocalProjection(x, y, self._radius + PROJECTION_MARGIN_METRES)
+        outlines = zone_outlines(patch, self._source.bands)
+        shapes = tuple(
+            ZoneShape(band, projection.polygons(outlines[band]))
+            for band in self._source.bands
+            if band in outlines
+        )
+        gaps = () if status is CoverageStatus.COVERED else self._no_data_areas(x, y, projection)
+        return ZoneMap(self._radius, shapes, gaps)
+
+    def _no_data_areas(
+        self, x: float, y: float, projection: LocalProjection
+    ) -> tuple[Polygon, ...]:
+        """The parts of the search area known to have no data for this product."""
+        squares = self._coverage.gap_squares(self._source.key)
+        if not squares:
+            return ()
+        search_area = shapely.Point(x, y).buffer(self._radius, quad_segs=16)
+        blank = shapely.union_all([square_box(s.easting, s.northing) for s in squares])
+        inside = shapely.intersection(blank, search_area)
+        return () if inside.is_empty else projection.polygons(inside)
 
     def _gap(self, title: str, status: ResultStatus, summary: str) -> PerilResult:
         return PerilResult(
